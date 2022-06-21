@@ -383,7 +383,7 @@ class AutocorrelationTool(QMainWindow):
         super().__init__()
 
         self.viewer = napari_viewer
-        self.UI_FILE = str(Path(__file__).parent / "UI.ui")  # path to .ui file
+        self.UI_FILE = str("static/UI.ui")  # path to .ui file
         uic.loadUi(self.UI_FILE, self)
 
 
