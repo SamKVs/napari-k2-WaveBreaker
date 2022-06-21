@@ -2,6 +2,9 @@ name: napari-k2-autocorrelation
 display_name: napari K2 Autocorrelation
 contributions:
   commands:
+    - id: napari-k2-autocorrelation.AutocorrelationTool
+      python_name: napari_k2_autocorrelation._widget:AutocorrelationTool
+      title: random
     - id: napari-k2-autocorrelation.make_sample_data
       python_name: napari_k2_autocorrelation._sample_data:make_sample_data
       title: Load sample data from napari K2 Autocorrelation
@@ -19,8 +22,8 @@ contributions:
       display_name: napari K2 Autocorrelation
       key: unique_id.1
   widgets:
-    - command: napari-k2-autocorrelation.make_qwidget
-      display_name: Example QWidget
+    - command: napari-k2-autocorrelation.AutocorrelationTool
+      display_name: Autocorrelation
     - command: napari-k2-autocorrelation.make_magic_widget
       display_name: Example Magic Widget
     - command: napari-k2-autocorrelation.make_func_widget
