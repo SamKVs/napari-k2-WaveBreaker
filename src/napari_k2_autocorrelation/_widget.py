@@ -28,6 +28,17 @@ from napari.qt.threading import WorkerBase, WorkerBaseSignals
 if TYPE_CHECKING:
     import napari
 
+from napari_plugin_engine import napari_hook_implementation
+from pathlib import Path
+
+def abspath(root, relpath):
+    from pathlib import Path
+    root = Path(root)
+    if root.is_dir():
+        path = root/relpath
+    else:
+        path = root.parent/relpath
+    return str(path.absolute())
 
 def PrincipleComponents(df, mode, highlight):
     features = ["deg", "periodicity", "repeat"]
@@ -382,7 +393,7 @@ class AutocorrelationTool(QMainWindow):
         super().__init__()
 
         self.viewer = napari_viewer
-        self.UI_FILE = str("static/UI.ui")  # path to .ui file
+        self.UI_FILE = abspath(__file__, 'static/UI.ui')  # path to .ui file
         uic.loadUi(self.UI_FILE, self)
 
 
@@ -646,3 +657,7 @@ class MyWorker(WorkerBase):
         self.pool.stop()
 
 
+
+@napari_hook_implementation
+def napari_experimental_provide_dock_widget():
+    return AutocorrelationTool
