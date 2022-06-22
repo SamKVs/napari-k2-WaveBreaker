@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 from qtpy.QtWidgets import QMainWindow, QFileDialog
 import qtpy.QtCore
 from qtpy import uic
-from pathlib import Path
 import os
 import copy
 import numpy as np
