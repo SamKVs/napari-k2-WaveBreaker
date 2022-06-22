@@ -7,7 +7,7 @@ see: https://napari.org/plugins/guides.html?#widgets
 Replace code below according to your needs.
 """
 from typing import TYPE_CHECKING
-from qtpy.QtWidgets import QMainWindow, QFileDialog
+from qtpy.QtWidgets import QWidget, QFileDialog, QDockWidget
 import qtpy.QtCore
 from qtpy import uic
 import os
@@ -387,13 +387,13 @@ def cycledegrees(input, pxpermicron, filename, mode, outputimg, outputcsv, outpu
     return np.nanmax(fitlist[:, 1]), np.count_nonzero(np.isnan(grid)), repeatatmaxdeg, dfPC
 
 
-# Define the main window class
-class AutocorrelationTool(QMainWindow):
+# Define the main window classnapari
+class AutocorrelationTool(QWidget):
     def __init__(self, napari_viewer):  # include napari_viewer as argument (it has to have this name)
         super().__init__()
 
         self.viewer = napari_viewer
-        self.UI_FILE = abspath(__file__, 'static/UI.ui')  # path to .ui file
+        self.UI_FILE = abspath(__file__, 'static/form.ui')  # path to .ui file
         uic.loadUi(self.UI_FILE, self)
 
 
