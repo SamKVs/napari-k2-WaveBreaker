@@ -112,7 +112,7 @@ def gridsplit(array, mode, val):
         return internalsplit(array, [rowsplit, colsplit])
 
     if mode == "None":
-        return array
+        return [array]
 
 
 def autocorr(x, method):
@@ -268,14 +268,14 @@ def nanarraycleaner(list):
     return output
 
 
-def cycledegrees(input, pxpermicron, filename, mode, outputimg, outputcsv, outputpath):
+def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, outputcsv, outputpath):
     print("lets go")
     grid = input[1]
     index = input[0]
     fitlist = []
     tempdict = {}
     dfPC = pd.DataFrame(columns=["deg", "periodicity", "repeat", "gridindex"])
-    for deg in range(-90, 90):
+    for deg in range(restrictdeg[0], restrictdeg[1]):
 
         tempdict[deg] = {}
 
@@ -406,6 +406,7 @@ class AutocorrelationTool(QWidget):
         self.inputarray = None
         self.maskedarray = None
         self.outputPath = None
+        self.restrictdeg = [-90,90]
 
         self.comboBox_layer.clear()
         for i in self.viewer.layers:
@@ -416,21 +417,26 @@ class AutocorrelationTool(QWidget):
         self.comboBox_mode.currentIndexChanged.connect(self.changeLock_zone)
         self.comboBox_gridsplit.currentIndexChanged.connect(self.changeLock_grid)
         self.comboBox_visOutput.currentIndexChanged.connect(self.changeLock_vis)
+        self.angleSlider.valueChanged.connect(self.updateslidervalue)
         self.analyze.clicked.connect(self.Autocorrelate)
         self.pushButton_File.clicked.connect(self.filedialog)
 
+    def updateslidervalue(self):
+        self.sliderLabel.setText(str(self.angleSlider.value()))
 
     def filedialog(self):
         self.outputPath = QFileDialog.getExistingDirectory(self, 'Select output path')
 
     def changeLock_zone(self):
         if self.comboBox_mode.currentText() == "Full search":
-            self.spinBox_zoneLeft.setEnabled(False)
-            self.spinBox_zoneRight.setEnabled(False)
+            self.spinBox_zoneMid.setEnabled(False)
+            self.angleSlider.setEnabled(False)
+            self.restrictdeg = [-90, 90]
 
         else:
-            self.spinBox_zoneLeft.setEnabled(True)
-            self.spinBox_zoneRight.setEnabled(True)
+            self.spinBox_zoneMid.setEnabled(True)
+            self.angleSlider.setEnabled(True)
+            self.restrictdeg = [self.spinBox_zoneMid.value()-self.angleSlider.value(), self.spinBox_zoneMid.value()+self.angleSlider.value()]
 
     def changeLock_grid(self):
         if self.comboBox_gridsplit.currentText() == "None":
@@ -515,12 +521,11 @@ class AutocorrelationTool(QWidget):
     def Autocorrelate(self):
         self.readfile()
         self.threshold()
+        self.changeLock_zone()
         self.thread = MyWorker()
         self.thread.updateparameters(currentlayer=self.comboBox_layer.currentText(),
                                      maskedarray=self.maskedarray,
                                      mode=self.comboBox_mode.currentText(),
-                                     resleft=self.spinBox_zoneLeft.value(),
-                                     resright=self.spinBox_zoneLeft.value(),
                                      gridsplitmode=self.comboBox_gridsplit.currentText(),
                                      gridsplitleft=self.spinBox_gridLeft.value(),
                                      gridsplitright=self.spinBox_gridRight.value(),
@@ -531,7 +536,8 @@ class AutocorrelationTool(QWidget):
                                      pixelsize=self.spinBox_pixel.value(),
                                      outimg=self.checkBox_outImg.isChecked(),
                                      outcsv=self.checkBox_outCSV.isChecked(),
-                                     path=self.outputPath)
+                                     path=self.outputPath,
+                                     restrictdeg=self.restrictdeg)
 
         self.progressBar.setValue(0)
         self.thread.start()
@@ -560,17 +566,14 @@ class MyWorker(WorkerBase):
         self.gridsplitright = None
         self.gridsplitleft = None
         self.gridsplitmode = None
-        self.resright = None
-        self.resleft = None
         self.analysismode = None
         self.maskedarray = None
+        self.restrictdeg = None
 
     def updateparameters(self,
                          currentlayer,
                          maskedarray,
                          mode,
-                         resleft,
-                         resright,
                          gridsplitmode,
                          gridsplitleft,
                          gridsplitright,
@@ -581,13 +584,12 @@ class MyWorker(WorkerBase):
                          pixelsize,
                          outimg,
                          outcsv,
-                         path):
+                         path,
+                         restrictdeg):
 
         self.currentlayer = currentlayer
         self.maskedarray = maskedarray
         self.analysismode = mode
-        self.resleft = resleft
-        self.resright = resright
         self.gridsplitmode = gridsplitmode
         self.gridsplitleft = gridsplitleft
         self.gridsplitright = gridsplitright
@@ -599,6 +601,7 @@ class MyWorker(WorkerBase):
         self.outimg = outimg
         self.outcsv = outcsv
         self.path = path
+        self.restrictdeg = restrictdeg
 
     def work(self):
         print("ok")
@@ -624,12 +627,13 @@ class MyWorker(WorkerBase):
         with Pool(4) as self.pool:
             output = []
             for _ in self.pool.imap_unordered(partial(cycledegrees,
-                                                 pxpermicron=self.pixelsize,
-                                                 filename=self.currentlayer,
-                                                 mode=self.autocormode,
-                                                 outputimg=self.outimg,
-                                                 outputcsv=self.outcsv,
-                                                 outputpath=self.path), indexgrids):
+                                                pxpermicron=self.pixelsize,
+                                                filename=self.currentlayer,
+                                                mode=self.autocormode,
+                                                outputimg=self.outimg,
+                                                outputcsv=self.outcsv,
+                                                restrictdeg= self.restrictdeg,
+                                                outputpath=self.path), indexgrids):
                 output.append(_)
                 self.progress.emit([False, len(indexgrids)])
                 # print(self.progressBar.value())
