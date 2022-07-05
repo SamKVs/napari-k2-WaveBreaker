@@ -24,6 +24,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import cv2
 from napari.qt.threading import WorkerBase, WorkerBaseSignals
+import math
 
 if TYPE_CHECKING:
     import napari
@@ -35,13 +36,14 @@ def abspath(root, relpath):
     from pathlib import Path
     root = Path(root)
     if root.is_dir():
-        path = root/relpath
+        path = root / relpath
     else:
-        path = root.parent/relpath
+        path = root.parent / relpath
     return str(path.absolute())
 
+
 def PrincipleComponents(df, mode, highlight):
-    features = ["deg", "periodicity", "repeat"]
+    features = ["deg", "periodicity", "frequency"]
     x = df.loc[:, features].values
     x = StandardScaler().fit_transform(x)
 
@@ -55,12 +57,13 @@ def PrincipleComponents(df, mode, highlight):
         finalDf = pd.concat([principalDf.reset_index(), df.reset_index()], axis=1)
 
         finalDf["periodicity"] = finalDf["periodicity"].astype(float)
-        finalDf["repeat"] = finalDf["repeat"].astype(float)
+        finalDf["frequency"] = finalDf["frequency"].astype(float)
 
-        traceDf = finalDf[finalDf["repeat"].between(highlight[0], highlight[1])]
+        traceDf = finalDf[finalDf["frequency"].between(highlight[0], highlight[1])]
 
         fig = px.scatter(finalDf, x="principal component 1", y='principal component 2',
-                         hover_data=["gridindex", "periodicity", "deg", "repeat"], color="periodicity")
+                         hover_data=["gridindex", "periodicity", "deg", "frequency"], color="periodicity",
+                         color_continuous_scale=["#020024", "#024451", "#027371", "#028f92", "#03afb8", "#05d9b9", "#05e69f"])
         fig.add_traces(
             go.Scatter(x=traceDf["principal component 1"], y=traceDf['principal component 2'], mode="markers",
                        marker_symbol='star', marker_size=15, hoverinfo="none")
@@ -69,14 +72,15 @@ def PrincipleComponents(df, mode, highlight):
     elif mode == "3D":
 
         df["periodicity"] = df["periodicity"].astype(float)
-        df["repeat"] = df["repeat"].astype(float)
+        df["frequency"] = df["frequency"].astype(float)
 
-        traceDf = df[df["repeat"].between(highlight[0], highlight[1])]
+        traceDf = df[df["frequency"].between(highlight[0], highlight[1])]
 
-        fig = px.scatter_3d(df, x="deg", y='repeat', z='periodicity',
-                            hover_data=["gridindex", "periodicity", "deg", "repeat"], color="periodicity")
+        fig = px.scatter_3d(df, x="deg", y='frequency', z='periodicity',
+                            hover_data=["gridindex", "periodicity", "deg", "frequency"], color="periodicity",
+                            color_continuous_scale=["#020024", "#024451", "#027371", "#028f92", "#03afb8", "#05d9b9", "#05e69f"])
         fig.add_traces(
-            go.Scatter3d(x=traceDf["deg"], y=traceDf['repeat'],
+            go.Scatter3d(x=traceDf["deg"], y=traceDf['frequency'],
                          z=traceDf['periodicity'], mode="markers",
                          marker_symbol='diamond', marker_size=15, hoverinfo="skip")
         )
@@ -113,6 +117,37 @@ def gridsplit(array, mode, val):
 
     if mode == "None":
         return [array]
+
+    if mode == "Fixed":
+        arrayshape = np.shape(array)
+        rowsplit = []
+        colsplit = []
+        grids = []
+
+        rowdev = arrayshape[0] // val[0]
+        coldev = arrayshape[1] // val[1]
+
+        rowrest = arrayshape[0] % val[0]
+        colrest = arrayshape[1] % val[1]
+
+        for x in range(rowdev + 1):
+            rowsplit.append(round((rowrest / 2) + (x * val[0])))
+
+        for x in range(coldev + 1):
+            colsplit.append(round((colrest / 2) + (x * val[1])))
+
+        print(arrayshape)
+        print(rowsplit)
+        print(colsplit)
+
+        for row in range(len(rowsplit) - 1):
+            for col in range(len(colsplit) - 1):
+                grids.append(array[rowsplit[row]:rowsplit[row + 1], colsplit[col]:colsplit[col + 1]])
+
+        return grids
+
+    if mode == "Custom":
+        print(napari.layers.Shapes)
 
 
 def autocorr(x, method):
@@ -268,13 +303,37 @@ def nanarraycleaner(list):
     return output
 
 
+def normalizepx(arrayshape, midangle, deg, pxpermicron, pxamount):
+
+    rad = np.radians(deg + 90)
+
+    arrayshape = np.array(arrayshape) / pxpermicron
+
+    lineangle = math.atan2(abs(math.sin(rad)), abs(math.cos(rad)))
+
+    angle = abs(midangle - lineangle)
+
+    hyp = np.hypot(arrayshape[1], arrayshape[0]) / 2
+
+    length = (hyp * np.cos(angle)) * 2
+
+    return pxamount / length
+
+
 def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, outputcsv, outputpath):
     print("lets go")
     grid = input[1]
     index = input[0]
     fitlist = []
     tempdict = {}
-    dfPC = pd.DataFrame(columns=["deg", "periodicity", "repeat", "gridindex"])
+    dfPC = pd.DataFrame(columns=["deg", "periodicity", "frequency", "gridindex"])
+    gridshape = np.shape(grid)
+
+    biorow = gridshape[0] / pxpermicron
+    biocol = gridshape[1] / pxpermicron
+
+    midangle = np.arctan(biorow / biocol)
+
     for deg in range(restrictdeg[0], restrictdeg[1]):
 
         tempdict[deg] = {}
@@ -291,70 +350,76 @@ def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, out
 
         meanarray = []
 
-        while checker(np.shape(grid), intersect, intersectoposite):
+        while checker(gridshape, intersect, intersectoposite):
             if np.isnan(extractline(grid, intersect, intersectoposite)).all():
                 meanarray.append(np.nan)
             else:
                 meanarray.append(np.nanmean(extractline(grid, intersect, intersectoposite)))
-            intersect, intersectoposite = nextpointsmart(np.shape(grid), deg, intersect, intersectoposite, 'plus')
+            intersect, intersectoposite = nextpointsmart(gridshape, deg, intersect, intersectoposite, 'plus')
 
-        while checker(np.shape(grid), originalintersect, originalintersectoposite):
+        while checker(gridshape, originalintersect, originalintersectoposite):
             if np.isnan(extractline(grid, originalintersect, originalintersectoposite)).all():
                 meanarray.append(np.nan)
             else:
                 meanarray.insert(0, np.nanmean(extractline(grid, originalintersect, originalintersectoposite)))
-            originalintersect, originalintersectoposite = nextpointsmart(np.shape(grid), deg, originalintersect,
+            originalintersect, originalintersectoposite = nextpointsmart(gridshape, deg, originalintersect,
                                                                          originalintersectoposite, 'min')
 
-        newmeanarray = (np.array(meanarray) - np.nanmin(meanarray)) / (np.nanmax(meanarray) - np.nanmin(meanarray))
+        if not (np.isnan(np.nanmax(meanarray)) or np.nanmax(meanarray) == 0):
 
-        newmeanarray = nanarraycleaner(newmeanarray)
+            newmeanarray = np.array(meanarray) - np.nanmin(meanarray)
+            newmeanarray = newmeanarray / np.nanmax(meanarray)
 
-        autocorlist = autocorr(newmeanarray, mode)
+            pxpermicron_norm = normalizepx(gridshape, midangle, deg, pxpermicron, len(newmeanarray))
 
-        cormin = (np.diff(np.sign(np.diff(autocorlist))) > 0).nonzero()[0] + 1  # local min
-        cormax = (np.diff(np.sign(np.diff(autocorlist))) < 0).nonzero()[0] + 1  # local max
-        if len(cormax) < 3 or len(cormin) < 2:
-            periodicity = np.nan
-            repeat = np.nan
-            fitlist.append([deg, periodicity, repeat])
-        else:
-            maxpoint = autocorlist[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
-            minpoint = autocorlist[cormin[int(len(cormin) / 2)]]
+            newmeanarray = nanarraycleaner(newmeanarray)
 
-            periodicity = maxpoint - minpoint
-            repeat = (cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1] - len(
-                autocorlist) / 2) / pxpermicron
-            fitlist.append([deg, periodicity[0], repeat[0]])
+            autocorlist = autocorr(newmeanarray, mode)
 
-        tempdict[deg] = {
-            "x0": x0,
-            "x1": x1,
-            "y0": y0,
-            "y1": y1,
-            "intensityplot": newmeanarray,
-            "autocorrelationplot": autocorlist,
-            "cormin": cormin,
-            "cormax": cormax,
+            cormin = (np.diff(np.sign(np.diff(autocorlist))) > 0).nonzero()[0] + 1  # local min
+            cormax = (np.diff(np.sign(np.diff(autocorlist))) < 0).nonzero()[0] + 1  # local max
+            if len(cormax) < 3 or len(cormin) < 2:
+                periodicity = np.nan
+                frequency = np.nan
+                fitlist.append([deg, periodicity, frequency])
+            else:
+                maxpoint = autocorlist[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
+                minpoint = autocorlist[cormin[int(len(cormin) / 2)]]
 
-        }
+                periodicity = maxpoint - minpoint
+                frequency = (cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1] - len(
+                    autocorlist) / 2) / pxpermicron_norm
+                fitlist.append([deg, periodicity[0], frequency[0]])
 
-        if np.isnan(periodicity) or np.isnan(repeat):
-            pass
-        else:
-            tempdf = pd.DataFrame({"deg": [deg], "periodicity": [periodicity[0]], "repeat": [repeat[0]],
-                                   "gridindex": [filename + " / " + str(index)]})
-            dfPC = pd.concat([dfPC, tempdf])
+            tempdict[deg] = {
+                "x0": x0,
+                "x1": x1,
+                "y0": y0,
+                "y1": y1,
+                "intensityplot": newmeanarray,
+                "autocorrelationplot": autocorlist,
+                "cormin": cormin,
+                "cormax": cormax,
+                "pxpermicron": pxpermicron_norm
+
+            }
+
+            if not (np.isnan(periodicity) or np.isnan(frequency)):
+                tempdf = pd.DataFrame({"deg": [deg], "periodicity": [periodicity[0]], "frequency": [frequency[0]],
+                                       "gridindex": [filename + " / " + str(index)]})
+                dfPC = pd.concat([dfPC, tempdf])
 
     fitlist = np.array(fitlist, dtype="float32")
 
     try:
         maxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 0]
-        repeatatmaxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 2]
+        frequencyatmaxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 2]
 
     except ValueError:
-        maxdeg = 0
-        repeatatmaxdeg = 0
+        maxdeg = np.nan
+        frequencyatmaxdeg = np.nan
+
+        return np.nan, np.count_nonzero(np.isnan(grid)), frequencyatmaxdeg, dfPC
 
     if outputimg:
         fig, axes = plt.subplots(nrows=3)
@@ -366,15 +431,16 @@ def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, out
         cormin = tempdict[maxdeg]["cormin"]
         cormax = tempdict[maxdeg]["cormax"]
         autocorlist = tempdict[maxdeg]["autocorrelationplot"]
-        micronlist = np.array(range(len(autocorlist))) / pxpermicron
+        micronlist = np.array(range(len(autocorlist))) / tempdict[maxdeg]["pxpermicron"]
+        micronlist2 = np.array(range(len(tempdict[maxdeg]["intensityplot"]))) / tempdict[maxdeg]["pxpermicron"]
 
-        axes[1].plot(tempdict[maxdeg]["intensityplot"])
+        axes[1].plot(micronlist2, tempdict[maxdeg]["intensityplot"])
         axes[2].plot(micronlist, autocorlist)
-        axes[2].plot(cormin / pxpermicron, autocorlist[cormin], "o", label="min", color='r')
-        axes[2].plot(cormax / pxpermicron, autocorlist[cormax], "o", label="max", color='b')
+        axes[2].plot(cormin / tempdict[maxdeg]["pxpermicron"], autocorlist[cormin], "o", label="min", color='r')
+        axes[2].plot(cormax / tempdict[maxdeg]["pxpermicron"], autocorlist[cormax], "o", label="max", color='b')
         axes[2].text(0.05, 0.95, np.nanmax(fitlist[:, 1]), transform=axes[2].transAxes, fontsize=14,
                      verticalalignment='top')
-        axes[2].text(0.05, 0.7, repeatatmaxdeg, transform=axes[2].transAxes, fontsize=14,
+        axes[2].text(0.05, 0.7, frequencyatmaxdeg, transform=axes[2].transAxes, fontsize=14,
                      verticalalignment='top')
 
         try:
@@ -384,7 +450,9 @@ def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, out
 
         plt.savefig(outputpath + "/" + filename + "/" + str(index) + ".jpg")
 
-    return np.nanmax(fitlist[:, 1]), np.count_nonzero(np.isnan(grid)), repeatatmaxdeg, dfPC
+
+
+    return np.nanmax(fitlist[:, 1]), np.size(grid) - np.count_nonzero(np.isnan(grid)), frequencyatmaxdeg, dfPC
 
 
 # Define the main window classnapari
@@ -396,8 +464,6 @@ class AutocorrelationTool(QWidget):
         self.UI_FILE = abspath(__file__, 'static/form.ui')  # path to .ui file
         uic.loadUi(self.UI_FILE, self)
 
-
-
         self.viewer.layers.events.removed.connect(self.updatelayer)
         self.viewer.layers.events.inserted.connect(self.updatelayer)
         self.viewer.layers.events.changed.connect(self.updatelayer)
@@ -406,13 +472,14 @@ class AutocorrelationTool(QWidget):
         self.inputarray = None
         self.maskedarray = None
         self.outputPath = None
-        self.restrictdeg = [-90,90]
+        self.restrictdeg = [-90, 90]
 
         self.comboBox_layer.clear()
         for i in self.viewer.layers:
             self.comboBox_layer.addItem(str(i))
 
         self.genThresh.clicked.connect(self.visualizeThresh)
+        self.pushButton_genShapes.clicked.connect(self.createshapelayer)
 
         self.comboBox_mode.currentIndexChanged.connect(self.changeLock_zone)
         self.comboBox_gridsplit.currentIndexChanged.connect(self.changeLock_grid)
@@ -436,7 +503,8 @@ class AutocorrelationTool(QWidget):
         else:
             self.spinBox_zoneMid.setEnabled(True)
             self.angleSlider.setEnabled(True)
-            self.restrictdeg = [self.spinBox_zoneMid.value()-self.angleSlider.value(), self.spinBox_zoneMid.value()+self.angleSlider.value()]
+            self.restrictdeg = [self.spinBox_zoneMid.value() - self.angleSlider.value(),
+                                self.spinBox_zoneMid.value() + self.angleSlider.value()]
 
     def changeLock_grid(self):
         if self.comboBox_gridsplit.currentText() == "None":
@@ -511,14 +579,18 @@ class AutocorrelationTool(QWidget):
                               colormap="cyan",
                               opacity=0.30)
 
+    def createshapelayer(self):
+        self.viewer.add_shapes(shape_type="rectangle", edge_width=5, edge_color='#05d9b9', face_color='#05e69f',
+                               opacity=0.4, name=str(self.viewer.layers[self.comboBox_layer.currentText()]) + "_ROI")
+
     def updateprogress(self, progress):
         if progress[0]:
             self.progressBar.setValue(100)
         else:
             self.progressBar.setValue(self.progressBar.value() + (1 / int(progress[1])) * 100)
 
-
     def Autocorrelate(self):
+        # print(self.viewer.layers[self.comboBox_layer.currentText() + "_ROI"].data)
         self.readfile()
         self.threshold()
         self.changeLock_zone()
@@ -623,17 +695,16 @@ class MyWorker(WorkerBase):
         for index, grid in enumerate(cleangrids):
             indexgrids.append([index, grid])
 
-
         with Pool(4) as self.pool:
             output = []
             for _ in self.pool.imap_unordered(partial(cycledegrees,
-                                                pxpermicron=self.pixelsize,
-                                                filename=self.currentlayer,
-                                                mode=self.autocormode,
-                                                outputimg=self.outimg,
-                                                outputcsv=self.outcsv,
-                                                restrictdeg= self.restrictdeg,
-                                                outputpath=self.path), indexgrids):
+                                                      pxpermicron=self.pixelsize,
+                                                      filename=self.currentlayer,
+                                                      mode=self.autocormode,
+                                                      outputimg=self.outimg,
+                                                      outputcsv=self.outcsv,
+                                                      restrictdeg=self.restrictdeg,
+                                                      outputpath=self.path), indexgrids):
                 output.append(_)
                 self.progress.emit([False, len(indexgrids)])
                 # print(self.progressBar.value())
@@ -646,15 +717,19 @@ class MyWorker(WorkerBase):
             output = np.array(output)
             weighted_avg = np.average(output[:, 0], weights=output[:, 1])
             intervallist = output[:, 2]
-            medianrepeat = np.average(output[:, 2], weights=output[:, 1])
+            medianfrequency = np.average(output[:, 2], weights=output[:, 1])
             print('FINAL RESULT', weighted_avg)
             print(intervallist)
-            print('most likely periodicity interval', medianrepeat)
+            print('most likely periodicity interval', medianfrequency)
 
             if not self.visoutput == "None":
                 df = pd.concat(output[:, 3])
                 PrincipleComponents(df, self.visoutput,
                                     (self.visleft, self.visright))
+            if not self.outcsv == "None":
+                df = pd.concat(output[:, 3])
+                print()
+                df.to_csv(self.path + "/" + self.currentlayer + ".csv", sep= ";")
 
     def stop(self):
         self.terminate()
