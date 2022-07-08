@@ -728,8 +728,9 @@ class MyWorker(WorkerBase):
                                     (self.visleft, self.visright))
             if not self.outcsv == "None":
                 df = pd.concat(output[:, 3])
-                print()
-                df.to_csv(self.path + "/" + self.currentlayer + ".csv", sep= ";")
+                df2 = pd.DataFrame({"total grids": [np.shape(indexgrids)[0]]})
+                new = pd.concat([df, df2], axis=1)
+                new.to_csv(self.path + "/" + self.currentlayer + ".csv", sep= ";")
 
     def stop(self):
         self.terminate()
