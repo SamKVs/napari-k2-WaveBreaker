@@ -12,9 +12,9 @@
 </div>
 <h2>About this plugin</h2>
 <p>Test text</p>
-<div style="display: flex ; justify-content: center">
+<p align="center">
     <img src="static/Neuron.svg" width="70%">
-</div>
+</p>
 
 
 ----------------------------------
