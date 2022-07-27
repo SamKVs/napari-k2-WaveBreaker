@@ -7,7 +7,15 @@
 [![codecov](https://codecov.io/gh/samvans98/napari-k2-autocorrelation/branch/main/graph/badge.svg)](https://codecov.io/gh/samvans98/napari-k2-autocorrelation)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-autocorrelation)](https://napari-hub.org/plugins/napari-k2-autocorrelation)
 
-later
+<div>
+    <img src="static/Artboard4.png">
+</div>
+<h2>About this plugin</h2>
+<p>Test text</p>
+<center>
+    <img src="static/Neuron.svg" width="70%">
+</center>
+
 
 ----------------------------------
 

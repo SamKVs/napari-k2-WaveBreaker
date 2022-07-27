@@ -165,9 +165,27 @@ def autocorr(x, method):
         return sumproduct / DEVSQ(list)
 
     if method == "Numpy":
-        result = np.correlate(x, x, mode='same')
+        x = np.array(x)
+
+        # Mean
+        mean = np.mean(x)
+
+        # Variance
+        var = np.var(x)
+
+        # Normalized data
+        ndata = x - mean
+
+        acorr = np.correlate(ndata, ndata, 'full')[len(ndata) - 1:]
+        acorr = acorr / var / len(ndata)
+
+        resultmin = np.flip(acorr[1:])
+        result = np.concatenate((resultmin, acorr), axis=None)
+
         return result
+
     elif method == "Miso":
+        x = (np.array(x) - np.nanmin(x)) / (np.nanmax(x) - np.nanmin(x))
         resultplus = []
         for index, val in enumerate(x):
             count = len(x) / 3
@@ -328,6 +346,7 @@ def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, out
     tempdict = {}
     dfPC = pd.DataFrame(columns=["deg", "periodicity", "frequency", "gridindex"])
     gridshape = np.shape(grid)
+    gridpercentage = (np.size(grid) - np.count_nonzero(np.isnan(grid))) / np.size(grid)
 
     biorow = gridshape[0] / pxpermicron
     biocol = gridshape[1] / pxpermicron
@@ -367,47 +386,46 @@ def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, out
 
         if not (np.isnan(np.nanmax(meanarray)) or np.nanmax(meanarray) == 0):
 
-            newmeanarray = np.array(meanarray) - np.nanmin(meanarray)
-            newmeanarray = newmeanarray / np.nanmax(meanarray)
+            pxpermicron_norm = normalizepx(gridshape, midangle, deg, pxpermicron, len(meanarray))
 
-            pxpermicron_norm = normalizepx(gridshape, midangle, deg, pxpermicron, len(newmeanarray))
+            newmeanarray = nanarraycleaner(meanarray)
 
-            newmeanarray = nanarraycleaner(newmeanarray)
+            if not np.isnan(newmeanarray).any():
 
-            autocorlist = autocorr(newmeanarray, mode)
+                autocorlist = autocorr(newmeanarray, mode)
 
-            cormin = (np.diff(np.sign(np.diff(autocorlist))) > 0).nonzero()[0] + 1  # local min
-            cormax = (np.diff(np.sign(np.diff(autocorlist))) < 0).nonzero()[0] + 1  # local max
-            if len(cormax) < 3 or len(cormin) < 2:
-                periodicity = np.nan
-                frequency = np.nan
-                fitlist.append([deg, periodicity, frequency])
-            else:
-                maxpoint = autocorlist[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
-                minpoint = autocorlist[cormin[int(len(cormin) / 2)]]
 
-                periodicity = maxpoint - minpoint
-                frequency = (cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1] - len(
-                    autocorlist) / 2) / pxpermicron_norm
-                fitlist.append([deg, periodicity[0], frequency[0]])
+                cormin = (np.diff(np.sign(np.diff(autocorlist))) > 0).nonzero()[0] + 1  # local min
+                cormax = (np.diff(np.sign(np.diff(autocorlist))) < 0).nonzero()[0] + 1  # local max
+                if len(cormax) < 3 or len(cormin) < 2:
+                    periodicity = np.nan
+                    frequency = np.nan
+                    fitlist.append([deg, periodicity, frequency])
+                else:
+                    maxpoint = autocorlist[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
+                    minpoint = autocorlist[cormin[int(len(cormin) / 2)]]
 
-            tempdict[deg] = {
-                "x0": x0,
-                "x1": x1,
-                "y0": y0,
-                "y1": y1,
-                "intensityplot": newmeanarray,
-                "autocorrelationplot": autocorlist,
-                "cormin": cormin,
-                "cormax": cormax,
-                "pxpermicron": pxpermicron_norm
+                    periodicity = maxpoint - minpoint
+                    frequency = (cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1] -
+                                 len(autocorlist) / 2) / pxpermicron_norm
+                    fitlist.append([deg, periodicity[0], frequency[0]])
 
-            }
+                tempdict[deg] = {
+                    "x0": x0,
+                    "x1": x1,
+                    "y0": y0,
+                    "y1": y1,
+                    "intensityplot": newmeanarray,
+                    "autocorrelationplot": autocorlist,
+                    "cormin": cormin,
+                    "cormax": cormax,
+                    "pxpermicron": pxpermicron_norm
+                }
 
-            if not (np.isnan(periodicity) or np.isnan(frequency)):
-                tempdf = pd.DataFrame({"deg": [deg], "periodicity": [periodicity[0]], "frequency": [frequency[0]],
-                                       "gridindex": [filename + " / " + str(index)]})
-                dfPC = pd.concat([dfPC, tempdf])
+                if not (np.isnan(periodicity) or np.isnan(frequency)):
+                    tempdf = pd.DataFrame({"deg": [deg], "periodicity": [periodicity[0]], "frequency": [frequency[0]],
+                                           "gridindex": [filename + " / " + str(index)], "pxpercentage": [gridpercentage]})
+                    dfPC = pd.concat([dfPC, tempdf])
 
     fitlist = np.array(fitlist, dtype="float32")
 
@@ -432,16 +450,19 @@ def cycledegrees(input, pxpermicron, filename, mode, restrictdeg, outputimg, out
         cormax = tempdict[maxdeg]["cormax"]
         autocorlist = tempdict[maxdeg]["autocorrelationplot"]
         micronlist = np.array(range(len(autocorlist))) / tempdict[maxdeg]["pxpermicron"]
+        micronlist = micronlist - (np.max(micronlist)/2)
         micronlist2 = np.array(range(len(tempdict[maxdeg]["intensityplot"]))) / tempdict[maxdeg]["pxpermicron"]
 
         axes[1].plot(micronlist2, tempdict[maxdeg]["intensityplot"])
         axes[2].plot(micronlist, autocorlist)
-        axes[2].plot(cormin / tempdict[maxdeg]["pxpermicron"], autocorlist[cormin], "o", label="min", color='r')
-        axes[2].plot(cormax / tempdict[maxdeg]["pxpermicron"], autocorlist[cormax], "o", label="max", color='b')
-        axes[2].text(0.05, 0.95, np.nanmax(fitlist[:, 1]), transform=axes[2].transAxes, fontsize=14,
-                     verticalalignment='top')
-        axes[2].text(0.05, 0.7, frequencyatmaxdeg, transform=axes[2].transAxes, fontsize=14,
-                     verticalalignment='top')
+        axes[2].plot((cormin / tempdict[maxdeg]["pxpermicron"]) - (np.max(micronlist)), autocorlist[cormin], "o", label="min", color='r')
+        axes[2].plot((cormax / tempdict[maxdeg]["pxpermicron"]) - (np.max(micronlist)), autocorlist[cormax], "o", label="max", color='b')
+        # axes[2].text(0.05, 0.95, np.nanmax(fitlist[:, 1]), transform=axes[2].transAxes, fontsize=14,
+        #              verticalalignment='top')
+        # axes[2].text(0.05, 0.7, frequencyatmaxdeg, transform=axes[2].transAxes, fontsize=14,
+        #              verticalalignment='top')
+
+        plt.subplots_adjust(hspace=0.5)
 
         try:
             os.mkdir(outputpath + "/" + filename)
@@ -488,6 +509,7 @@ class AutocorrelationTool(QWidget):
         self.analyze.clicked.connect(self.Autocorrelate)
         self.pushButton_File.clicked.connect(self.filedialog)
 
+
     def updateslidervalue(self):
         self.sliderLabel.setText(str(self.angleSlider.value()))
 
@@ -531,6 +553,7 @@ class AutocorrelationTool(QWidget):
 
     def threshold(self):
         ### Set type, blur and threshold
+        self.maskedarray = copy.deepcopy(self.inputarray)
         blurredz = np.array(self.inputarray, dtype='uint8')
         blurredz = cv2.GaussianBlur(blurredz, (5, 5), 5)
 
@@ -551,7 +574,10 @@ class AutocorrelationTool(QWidget):
         mask = np.zeros(blurredz.shape, np.uint8)
         cv2.drawContours(mask, [biggest_contour], -1, 255, -1)
 
-        self.maskedarray = copy.deepcopy(self.inputarray)
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
 
         ### overlay original image with mask
         self.maskedarray[mask == 0] = np.nan
