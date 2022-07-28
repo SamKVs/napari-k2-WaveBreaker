@@ -23,15 +23,13 @@ Further information about the installation and licensing of the plugin can be fo
 Actin is the most abundant protein in eukaryotic cells. As it is part of the cytoskelleton its function essential for 
 the maintenance of cell's morfological structure. In neurons, it was only recently that researchers started paying 
 attention to the peculiar subcelular orgazation and localization of actin. First focussed on the dentritic spines, 
-later expanding to the axon.
+later expanding to the axon.  
 
-<div style="display: flex; margin-top: 40px">
-    <div>
-        <img src="static/Figure 1.svg" width="500">
-    </div>
-    <div style="margin-left: 20px">Actin 
-    </div>
-</div>
+<p>Actin </p>
+<div>
+<p align="center">
+    <img src="static/Figure 1.svg" width="100%">
+</p>
 
 
 ----------------------------------
