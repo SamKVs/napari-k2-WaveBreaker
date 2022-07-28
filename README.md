@@ -30,6 +30,9 @@ later expanding to the axon.
 <p align="center">
     <img src="static/Figure 1.svg" width="100%">
 </p>
+<p align="center">
+    <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
+</p>
 
 
 ----------------------------------
