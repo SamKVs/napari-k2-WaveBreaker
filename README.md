@@ -1,10 +1,10 @@
 # napari-k2-autocorrelation
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-k2-autocorrelation.svg?color=green)](https://github.com/samvans98/napari-k2-autocorrelation/raw/main/LICENSE)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-k2-autocorrelation.svg?color=green)](https://github.com/SamKVs/napari-k2-autocorrelation/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-k2-autocorrelation.svg?color=green)](https://pypi.org/project/napari-k2-autocorrelation)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-k2-autocorrelation.svg?color=green)](https://python.org)
-[![tests](https://github.com/samvans98/napari-k2-autocorrelation/workflows/tests/badge.svg)](https://github.com/samvans98/napari-k2-autocorrelation/actions)
-[![codecov](https://codecov.io/gh/samvans98/napari-k2-autocorrelation/branch/main/graph/badge.svg)](https://codecov.io/gh/samvans98/napari-k2-autocorrelation)
+[![tests](https://github.com/SamKVs/napari-k2-autocorrelation/workflows/tests/badge.svg)](https://github.com/SamKVs/napari-k2-autocorrelation/actions)
+[![codecov](https://codecov.io/gh/SamKVs/napari-k2-autocorrelation/branch/main/graph/badge.svg)](https://codecov.io/gh/SamKVs/napari-k2-autocorrelation)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-autocorrelation)](https://napari-hub.org/plugins/napari-k2-autocorrelation)
 
 <div>
@@ -25,14 +25,19 @@ the maintenance of cell's morfological structure. In neurons, it was only recent
 attention to the peculiar subcelular orgazation and localization of actin. First focussed on the dentritic spines, 
 later expanding to the axon.  
 
-<p>Actin </p>
-<div>
-<p align="center">
+The axon initial segment (AIS) is defines as the most proximal 30-60 µm of the axon and is known for its sturdy actin-betaIV cytoskeletal structure which is known to facilitate the densely packed ion channels, regulatory and scaffolding proteins on the membrane. 
+
+<p align="center" style="margin-top: 50px ; margin-bottom: 50px">
     <img src="static/Figure 1.svg" width="100%">
 </p>
 <p align="center">
     <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
 </p>
+
+<div align="center" style="margin-top: 50px ; margin-bottom: 50px">
+    <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
+    <p align="center" style="font-style: italic">Example image of Kv1.1 made on a Zeiss AxioImager Z1 equiped with a STEDYCON scanhead detector for confocal and super-resolution imaging, fitted with 4 APDs. </p>
+</div>
 
 
 ----------------------------------
