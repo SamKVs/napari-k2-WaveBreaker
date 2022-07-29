@@ -51,7 +51,22 @@ fitted with 4 APDs. Post-acquisition, image was deconvolved using Huygens Deconv
 
 &nbsp;
 
-Because of the relative novalty of super resolution imaging of the AIS there is no standardized way of quantifying the goodness of periodicy at this moment.
+Because of the relative novelty of super resolution imaging of the AIS there is no standardized way of quantifying the
+goodness of periodicity at this moment. Previous publication have attempted the following methods:
+
+* Dawing a line multipixel-wide line through a part of the AIS where periodicity is noticable. hereafter, autocorrelation
+can be performed on the intensity profile of the line. With this method the researcher can extract the frequency of the 
+profile, on in other words the distance between 2 rings, and a goodness value of periodicity. The problem with this
+technique is that the location of the line is undeniably bias as the researcher will always choose a region with the
+best periodity relative to the rest of the image.
+* 
+
+&nbsp;
+<p align="center">
+    <img src="static/Workflow.svg" width="100%">
+</p>
+&nbsp;
+
 
 ----------------------------------
 
