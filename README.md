@@ -34,7 +34,7 @@ The axon initial segment (AIS) is defines as the most proximal 30-60 µm of the 
 
 <div align="center" style="margin-top: 50px ; margin-bottom: 50px">
     <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
-    <p align="center" style="font-style: italic">Example image of Kv1.1 made on a Zeiss AxioImager Z1 equiped with a STEDYCON scanhead detector for confocal and super-resolution imaging, fitted with 4 APDs. </p>
+    <i align="center">Example image of Kv1.1 made on a Zeiss AxioImager Z1 equiped with a STEDYCON scanhead detector for confocal and super-resolution imaging, fitted with 4 APDs. </i>
 </div>
 
 
