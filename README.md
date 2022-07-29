@@ -63,7 +63,7 @@ best periodity relative to the rest of the image.
 
 &nbsp;
 <p align="center">
-    <img src="static/Workflow.svg" width="100%">
+    <img src="static/workflow.svg" width="100%">
 </p>
 &nbsp;
 
