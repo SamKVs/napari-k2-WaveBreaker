@@ -14,30 +14,44 @@
 
 This Napari plugin was designed for the detection and quantification of periodic biological structures.
 As this plugin has not been uploaded to napari-hub as of this moment it **cannot be installed on a pre-compiled, bundled 
-version of Napari**. Therefor Napari will need to be installed as a python package 
+version of Napari**. Therefore Napari will need to be installed as a python package 
 (<a href="https://napari.org/stable/tutorials/fundamentals/installation.html">more info about Napari installation</a>). 
 Further information about the installation and licensing of the plugin can be found below. 
 
+
 <h3>Background</h3>
 
-Actin is the most abundant protein in eukaryotic cells. As it is part of the cytoskelleton its function essential for 
-the maintenance of cell's morfological structure. In neurons, it was only recently that researchers started paying 
-attention to the peculiar subcelular orgazation and localization of actin. First focussed on the dentritic spines, 
+Actin is the most abundant protein in eukaryotic cells. As it is part of the cytoskeleton its function is essential for 
+the maintenance of the cell's morphological structure. In neurons, it was only recently that researchers started paying 
+attention to the peculiar subcellular organization and localization of actin. First focussing on the dendritic spines, 
 later expanding to the axon.  
 
-The axon initial segment (AIS) is defines as the most proximal 30-60 µm of the axon and is known for its sturdy actin-betaIV cytoskeletal structure which is known to facilitate the densely packed ion channels, regulatory and scaffolding proteins on the membrane. 
+The axon initial segment (AIS) is defined as the most proximal 30-60 µm of the axon and is known for its sturdy 
+actin-betaIV cytoskeletal structure which is known to facilitate the densely packed ion channels, regulatory and
+scaffolding proteins on the membrane. The recent popularity of superresolution microscopy techniques like STORM and STED
+has made the study of the localization of these proteins relatively easy and straightforward.
 
-<p align="center" style="margin-top: 50px ; margin-bottom: 50px">
+&nbsp;
+<p align="center">
     <img src="static/Figure 1.svg" width="100%">
 </p>
+&nbsp;
 
+Because of this property of the AIS many ion channels are localized either perpendicular to the actin rings
+or attached to a scaffolding protein called Ankyrin G which is localized in between two actin rings. This results in ion 
+channels like the Kv 1.1 (displayed below) appearing similar to superresolution images of actin. 
 
-
-<div align="center" style="margin-top: 50px ; margin-bottom: 50px">
+&nbsp;
+<div align="center">
     <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
-    <i align="center" style="font-size: 70%">Example image of Kv1.1 made on a Zeiss AxioImager Z1 equiped with a STEDYCON scanhead detector for confocal and super-resolution imaging, fitted with 4 APDs. </i>
+    <i align="center" style="font-size: 9px"> Example image of a rat hippocampal neuron AIS immunostained for Kv1.1.
+Image made on a Zeiss AxioImager Z1 equipped with a STEDYCON scanhead detector for confocal and super-resolution imaging,
+fitted with 4 APDs. Post-acquisition, image was deconvolved using Huygens Deconvolution Software  </i>
 </div>
 
+&nbsp;
+
+Because of the relative novalty of super resolution imaging of the AIS there is no standardized way of quantifying the goodness of periodicy at this moment.
 
 ----------------------------------
 
@@ -69,7 +83,7 @@ Distributed under the terms of the [BSD-3] license,
 
 ## Issues
 
-If you encounter any problems, please [file an issue] along with a detailed description.
+If you encounter any problems, please file an issue along with a detailed description or reach out to me.
 
 [napari]: https://github.com/napari/napari
 
