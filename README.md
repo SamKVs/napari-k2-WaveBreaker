@@ -39,7 +39,7 @@ has made the study of the localization of these proteins relatively easy and str
 
 Because of this property of the AIS many ion channels are localized either perpendicular to the actin rings
 or attached to a scaffolding protein called Ankyrin G which is localized in between two actin rings. This results in ion 
-channels like the Kv 1.1 (displayed below) appearing similar to superresolution images of actin. 
+channels like the Kv 1.1 (displayed below) appearing similar to superresolution images of actin.
 
 &nbsp;
 <div align="center">
