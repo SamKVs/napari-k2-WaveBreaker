@@ -30,9 +30,7 @@ The axon initial segment (AIS) is defines as the most proximal 30-60 µm of the 
 <p align="center" style="margin-top: 50px ; margin-bottom: 50px">
     <img src="static/Figure 1.svg" width="100%">
 </p>
-<p align="center">
-    <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
-</p>
+
 
 <div align="center" style="margin-top: 50px ; margin-bottom: 50px">
     <img src="static/AIS.png" width="100%" style="mix-blend-mode: screen">
