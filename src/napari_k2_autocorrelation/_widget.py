@@ -168,15 +168,16 @@ class AutocorrelationTool(QWidget):
             self.comboBox_layer_1.setCurrentText(two)
 
     def threshold(self, input):
-
-        maskedarray = copy.deepcopy(input)
         blurredz = gaussian_filter(input, sigma=3)
 
+        inputmax = np.max(blurredz)
+        inputmin = np.min(blurredz)
 
         ### MANUAL THRESHOLDING ###
         thresh = self.threshSlider.value()
-        print(thresh)
-        blurredz[blurredz <= thresh] = 0
+        threshperc = thresh / 1000
+        newthresh = int((threshperc * (inputmax - inputmin)) + inputmin)
+        blurredz[blurredz <= newthresh] = 0
         blurredz[blurredz != 0] = 1
 
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30))

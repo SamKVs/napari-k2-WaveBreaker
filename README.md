@@ -8,7 +8,7 @@
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-autocorrelation)](https://napari-hub.org/plugins/napari-k2-autocorrelation)
 
 <div>
-    <img src="static/Artboard4.png">
+    <img src="static/Logo.png">
 </div>
 <h2>About this plugin</h2>
 
