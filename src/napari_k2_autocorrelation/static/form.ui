@@ -731,24 +731,6 @@ border-radius: 10px;</string>
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_15">
-           <item>
-            <widget class="QLabel" name="label_17">
-             <property name="text">
-              <string>Custom shapes</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_genShapes">
-             <property name="text">
-              <string>Generate shape layer</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
           <widget class="Line" name="line_17">
            <property name="styleSheet">
             <string notr="true">border: 2px solid #027371</string>
