@@ -19,6 +19,11 @@ from multiprocessing import Pool
 from functools import partial
 import pandas as pd
 import cv2
+
+from skimage import measure
+from skimage.morphology import disk
+from skimage.color import rgb2gray
+
 from napari.qt.threading import WorkerBase, WorkerBaseSignals
 from napari.utils.notifications import show_info
 
@@ -76,8 +81,6 @@ class AutocorrelationTool(QWidget):
         self.label_A.clicked.connect(self.corImgA)
         self.label_C.clicked.connect(self.corImgC)
         self.genThresh.clicked.connect(self.visualizeThresh)
-
-        self.pushButton_genShapes.clicked.connect(self.createshapelayer)
 
         self.comboBox_mode.currentIndexChanged.connect(self.changeLock_zone)
         self.comboBox_gridsplit.currentIndexChanged.connect(self.changeLock_grid)
@@ -169,32 +172,33 @@ class AutocorrelationTool(QWidget):
 
     def threshold(self, input):
         blurredz = gaussian_filter(input, sigma=3)
-
-        inputmax = np.max(blurredz)
-        inputmin = np.min(blurredz)
+        pixelsize = self.spinBox_pixel.value() / 2
 
         ### MANUAL THRESHOLDING ###
-        thresh = self.threshSlider.value()
-        threshperc = thresh / 1000
-        newthresh = int((threshperc * (inputmax - inputmin)) + inputmin)
-        blurredz[blurredz <= newthresh] = 0
+        thresh = (self.threshSlider.value() / 1000) * np.max(blurredz)
+        print(thresh)
+        blurredz[blurredz <= thresh] = 0
         blurredz[blurredz != 0] = 1
 
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (30, 30))
+
+        kernel = disk(pixelsize)
+
 
         mask = cv2.morphologyEx(blurredz, cv2.MORPH_CLOSE, kernel)
 
-        #
-        # contours, hierarchy = cv2.findContours(blurredz, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        # contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
-        #
-        # biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-        #
-        # mask = np.zeros(blurredz.shape, np.uint8)
-        # cv2.drawContours(mask, [biggest_contour], -1, 255, -1)
+        def biggestobject(mask):
+            # Find biggest object in mask
+            labels = measure.label(mask)
+            props = measure.regionprops(labels)
+            areas = [prop.area for prop in props]
+            biggest = np.argmax(areas)
+            biggestmask = labels == (biggest + 1)
+            return biggestmask
 
-        ### overlay original image with mask
-        # maskedarray[mask == 0] = np.nan
+        # Segment biggest object in image
+        mask = biggestobject(mask)
+
+
 
         return mask
 
@@ -213,7 +217,7 @@ class AutocorrelationTool(QWidget):
         inputarray = self.viewer.layers[self.comboBox_layer.currentText()].data
         ### Set to greyscale if needed
         try:
-            inputarray = cv2.cvtColor(inputarray, cv2.COLOR_RGB2GRAY)
+            inputarray = rgb2gray(inputarray)
         except Exception:
             pass
 
@@ -223,7 +227,7 @@ class AutocorrelationTool(QWidget):
             inputarray = self.viewer.layers[self.comboBox_layer_1.currentText()].data
             ### Set to greyscale if needed
             try:
-                inputarray = cv2.cvtColor(inputarray, cv2.COLOR_RGB2GRAY)
+                inputarray = rgb2gray(inputarray)
             except Exception:
                 pass
 
@@ -250,7 +254,6 @@ class AutocorrelationTool(QWidget):
             self.progressBar.setValue(self.progressBar.value() + (1 / int(progress[1])) * 100)
 
     def Autocorrelate(self):
-        # print(self.viewer.layers[self.comboBox_layer.currentText() + "_ROI"].data)
         self.readfile()
         if self.doCross and np.shape(self.inputarray) != np.shape(self.inputarray_c):
             raise ArrayShapeIncompatible("Selected layers should have the same shape")
@@ -290,7 +293,6 @@ class AutocorrelationTool(QWidget):
         self.thread.start()
 
         self.thread.progress.connect(self.updateprogress)
-
 
 
 class MyWorkerSignals(WorkerBaseSignals):

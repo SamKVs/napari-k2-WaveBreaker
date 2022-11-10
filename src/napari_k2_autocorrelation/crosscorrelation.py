@@ -131,7 +131,7 @@ def cycledegreesCross(input, pxpermicron, filename, mode, restrictdeg, outputimg
             newmeanarray_c = nanarraycleaner(meanarray_c)
 
             # if there is still NaN values in the middle of the meanarray the array is discarded
-            if not (np.isnan(newmeanarray_a).any() or np.isnan(newmeanarray_c).any()):
+            if not np.isnan(newmeanarray_a).any() and not np.isnan(newmeanarray_c).any():
 
                 # Autocorrelation is done on the meanarray
                 autocorlist_a = autocorr(newmeanarray_a, "Numpy")
