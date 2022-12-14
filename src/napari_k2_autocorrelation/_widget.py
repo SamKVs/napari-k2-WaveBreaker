@@ -42,9 +42,14 @@ from .crosscorrelation import *
 from .functions import *
 
 from scipy.ndimage import gaussian_filter
+from pathvalidate import sanitize_filename
 
 class ArrayShapeIncompatible(Exception):
     """Raised when the input value is too small"""
+    pass
+
+class NoOutputPath(Exception):
+    """Raised when the output path is not defined"""
     pass
 
 
@@ -64,6 +69,7 @@ class AutocorrelationTool(QWidget):
         self.viewer.layers.events.changed.connect(self.updatelayer)
 
         self.thread = None
+        self.outputPath = None
         self.inputarray = None
         self.maskedarray = None
         self.maskedarray_c = None
@@ -255,8 +261,12 @@ class AutocorrelationTool(QWidget):
 
     def Autocorrelate(self):
         self.readfile()
+
+        #Checkpoints before analysis
         if self.doCross and np.shape(self.inputarray) != np.shape(self.inputarray_c):
             raise ArrayShapeIncompatible("Selected layers should have the same shape")
+        elif (self.outputPath is None) and (self.checkBox_outCSV.isChecked() or self.checkBox_outImg.isChecked()):
+            raise NoOutputPath("No output path selected")
         else:
             if (str(self.comboBox_layer.currentText()) + "_mask") in self.viewer.layers:
                 maskedarray, maskedarrayc = self.applythresh(self.inputarray,
@@ -416,7 +426,7 @@ class MyWorker(WorkerBase):
             grids_a = gridsplit(self.maskedarray, gridsplitmode, gridsplitval)
             grids_c = gridsplit(self.maskedarray_c, gridsplitmode, gridsplitval)
             for index, grid in enumerate(grids_a):
-                if not np.isnan(grids_a).all():
+                if not np.isnan(grid).all():
                     cleangrids.append([grids_a[index],grids_c[index]])
 
             indexgrids = []
@@ -449,7 +459,7 @@ class MyWorker(WorkerBase):
                     df = pd.concat(output[:, 0])
                     PrincipleComponents(df, self.visoutput,
                                         (self.visleft, self.visright))
-                if not self.outcsv == "None":
+                if self.outcsv is not None:
 
                     try:
                         df = pd.concat(output[:, 0])
@@ -458,7 +468,7 @@ class MyWorker(WorkerBase):
 
                     df2 = pd.DataFrame({"total grids": [np.shape(indexgrids)[0]]})
                     new = pd.concat([df, df2], axis=1)
-                    new.to_csv(self.path + "/" + self.currentlayer + ".csv", sep=";")
+                    new.to_csv(self.path + "/" + sanitize_filename(self.currentlayer + ".csv"), sep=";")
 
     def stop(self):
         self.terminate()
