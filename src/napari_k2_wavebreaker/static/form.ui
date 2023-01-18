@@ -954,7 +954,7 @@ border-radius: 10px;</string>
   <customwidget>
    <class>ClickLabel</class>
    <extends>QLabel</extends>
-   <header>napari_k2_autocorrelation/ClickLabel.h</header>
+   <header>napari_k2_wavebreaker/ClickLabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

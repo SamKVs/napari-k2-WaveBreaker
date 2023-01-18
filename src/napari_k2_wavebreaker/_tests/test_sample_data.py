@@ -1,4 +1,4 @@
-# from napari_k2_autocorrelation import make_sample_data
+# from napari_k2_wavebreaker import make_sample_data
 
 # add your tests here...
 

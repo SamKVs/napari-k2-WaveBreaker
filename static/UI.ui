@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>K2: Autocorrelation</class>
- <widget class="QMainWindow" name="K2: Autocorrelation">
+ <class>K2: Wave Breaker</class>
+ <widget class="QMainWindow" name="K2: Wave Breaker">
   <property name="geometry">
    <rect>
     <x>0</x>

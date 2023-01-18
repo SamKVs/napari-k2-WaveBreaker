@@ -1,4 +1,4 @@
-# napari-k2-autocorrelation
+# napari-k2-WaveBreaker
 
 [![License BSD-3](https://img.shields.io/pypi/l/napari-k2-autocorrelation.svg?color=green)](https://github.com/SamKVs/napari-k2-autocorrelation/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-k2-autocorrelation.svg?color=green)](https://pypi.org/project/napari-k2-autocorrelation)
@@ -19,7 +19,7 @@ version of Napari**. Therefore Napari will need to be installed as a python pack
 Further information about the installation and licensing of the plugin can be found below. 
 
 
-<h3>Background</h3>
+<h3>Guide</h3>
 
 Actin is the most abundant protein in eukaryotic cells. As it is part of the cytoskeleton its function is essential for 
 the maintenance of the cell's morphological structure. In neurons, it was only recently that researchers started paying 
@@ -54,12 +54,17 @@ fitted with 4 APDs. Post-acquisition, image was deconvolved using Huygens Deconv
 Because of the relative novelty of super resolution imaging of the AIS there is no standardized way of quantifying the
 goodness of periodicity at this moment. Previous publication have attempted the following methods:
 
-* Dawing a line multipixel-wide line through a part of the AIS where periodicity is noticable. hereafter, autocorrelation
-can be performed on the intensity profile of the line. With this method the researcher can extract the frequency of the 
-profile, on in other words the distance between 2 rings, and a goodness value of periodicity. The problem with this
-technique is that the location of the line is undeniably bias as the researcher will always choose a region with the
-best periodity relative to the rest of the image.
-* 
+* Drawing a line ROI along the axon & extracting the intensity profile. The periodicity and frequency is then quantified by calculating the
+  autocorrelation of the intensity profile. 
+* Drawing a line ROI along the axon & extracting the intensity profile. The periodicity  and frequency is then quantified fitting a sine wave
+  to the intensity profile.
+* Drawing a squared ROI in a select region of the axon and performing 2D autocorrelation on the ROI. The periodicity and frequency is then
+  determined from the flattened profile. 
+
+While these methods are sufficient to quantify periodic patterns, they all have the drawback of being extremely subjective and prone to bias
+as the user has to manually select the region of interest. 
+
+While more recent methods have 
 
 &nbsp;
 <p align="center">

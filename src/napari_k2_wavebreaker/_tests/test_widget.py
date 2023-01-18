@@ -1,6 +1,6 @@
 # import numpy as np
 
-# from napari_k2_autocorrelation import ExampleQWidget, example_magic_widget
+# from napari_k2_wavebreaker import ExampleQWidget, example_magic_widget
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
