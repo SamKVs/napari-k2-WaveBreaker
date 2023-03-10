@@ -8,7 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from matplotlib.pyplot import xcorr
+import matplotlib.pyplot as plt
 
 if TYPE_CHECKING:
     import napari
@@ -185,6 +185,16 @@ def autocorr(x, method):
         ccov = np.correlate(a - np.mean(a), c - np.mean(c), mode='full')
         ccor = ccov / (len(a) * np.std(a) * np.std(c))
         return ccor
+
+def FFT(array,pixpermicron):
+    FFT = np.fft.fft(array)
+    x = np.array(range(len(FFT))) / pixpermicron
+
+    plt.plot(x, FFT)
+
+    plt.show()
+
+
 
 
 def midline(matrix, angle):

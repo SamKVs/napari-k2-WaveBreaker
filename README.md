@@ -1,11 +1,11 @@
 # napari-k2-WaveBreaker
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-k2-autocorrelation.svg?color=green)](https://github.com/SamKVs/napari-k2-autocorrelation/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-k2-autocorrelation.svg?color=green)](https://pypi.org/project/napari-k2-autocorrelation)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-k2-autocorrelation.svg?color=green)](https://python.org)
-[![tests](https://github.com/SamKVs/napari-k2-autocorrelation/workflows/tests/badge.svg)](https://github.com/SamKVs/napari-k2-autocorrelation/actions)
-[![codecov](https://codecov.io/gh/SamKVs/napari-k2-autocorrelation/branch/main/graph/badge.svg)](https://codecov.io/gh/SamKVs/napari-k2-autocorrelation)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-autocorrelation)](https://napari-hub.org/plugins/napari-k2-autocorrelation)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-k2-WaveBreaker.svg?color=green)](https://github.com/SamKVs/napari-k2-WaveBreaker/raw/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/napari-k2-WaveBreaker.svg?color=green)](https://pypi.org/project/napari-k2-WaveBreaker)
+[![Python Version](https://img.shields.io/pypi/pyversions/napari-k2-WaveBreaker.svg?color=green)](https://python.org)
+[![tests](https://github.com/SamKVs/napari-k2-WaveBreaker/workflows/tests/badge.svg)](https://github.com/SamKVs/napari-k2-WaveBreaker/actions)
+[![codecov](https://codecov.io/gh/SamKVs/napari-k2-WaveBreaker/branch/main/graph/badge.svg)](https://codecov.io/gh/SamKVs/napari-k2-WaveBreaker)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-WaveBreaker)](https://napari-hub.org/plugins/napari-k2-WaveBreaker)
 
 <div>
     <img src="static/Logo.png">

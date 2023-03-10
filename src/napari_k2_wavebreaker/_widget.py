@@ -15,10 +15,11 @@ import os
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
-from multiprocessing import Pool
+from multiprocessing import Pool, set_start_method, get_start_method
 from functools import partial
 import pandas as pd
 import cv2
+import platform
 
 from skimage import measure
 from skimage.morphology import disk
@@ -57,6 +58,9 @@ class NoOutputPath(Exception):
 class AutocorrelationTool(QWidget):
     def __init__(self, napari_viewer):
         super().__init__()
+
+        if platform.system() == "Darwin":
+            set_start_method('spawn', force=True)
 
         self.viewer = napari_viewer
         self.UI_FILE = abspath(__file__, 'static/form.ui')  # path to .ui file
@@ -254,10 +258,11 @@ class AutocorrelationTool(QWidget):
                                opacity=0.4, name=str(self.viewer.layers[self.comboBox_layer.currentText()]) + "_ROI")
 
     def updateprogress(self, progress):
+        print(progress)
         if progress[0]:
             self.progressBar.setValue(100)
         else:
-            self.progressBar.setValue(self.progressBar.value() + (1 / int(progress[1])) * 100)
+            self.progressBar.setValue(int(self.progressBar.value() + (1 / int(progress[1])) * 100))
 
     def Autocorrelate(self):
         self.readfile()
@@ -478,4 +483,6 @@ class MyWorker(WorkerBase):
 
 @napari_hook_implementation
 def napari_experimental_provide_dock_widget():
+    if platform.system() == "Darwin":
+        set_start_method('spawn')
     return AutocorrelationTool

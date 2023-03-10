@@ -87,7 +87,7 @@
               <enum>Qt::PlainText</enum>
              </property>
              <property name="pixmap">
-              <pixmap>Artboard4.png</pixmap>
+              <pixmap>Logo.png</pixmap>
              </property>
              <property name="scaledContents">
               <bool>true</bool>
