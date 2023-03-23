@@ -56,10 +56,13 @@ Additionally, it can be used to detect and quantify the periodicity shift betwee
 
 &nbsp;
 
-<a href="https://www.youtube.com/watch?v=QZ4Z2Z1Z2Z1">
+<a href="">
     <img src="static/UM BUT.svg" width="50%">  
+</a>
 
-
+<a href="static/TEMPLATE AUTOCORRELATION 0.17-0.21 (x10).xlsx">
+    <img src="static/AC EX BUT.svg" width="50%">  
+</a>
 <img src="static/UM BUT.svg" style="width: 50%">
 <img src="static/AC EX BUT.svg" style="width: 50%">
 <img src="static/CC EX BUT.svg" style="width: 50%">
