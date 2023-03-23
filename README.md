@@ -51,27 +51,22 @@ fitted with 4 APDs. Post-acquisition, image was deconvolved using Huygens Deconv
 
 &nbsp;
 
-Because of the relative novelty of super resolution imaging of the AIS there is no standardized way of quantifying the
-goodness of periodicity at this moment. Previous publication have attempted the following methods:
-
-* Drawing a line ROI along the axon & extracting the intensity profile. The periodicity and frequency is then quantified by calculating the
-  autocorrelation of the intensity profile. 
-* Drawing a line ROI along the axon & extracting the intensity profile. The periodicity  and frequency is then quantified fitting a sine wave
-  to the intensity profile.
-* Drawing a squared ROI in a select region of the axon and performing 2D autocorrelation on the ROI. The periodicity and frequency is then
-  determined from the flattened profile. 
-
-While these methods are sufficient to quantify periodic patterns, they all have the drawback of being extremely subjective and prone to bias
-as the user has to manually select the region of interest. 
-
-While more recent methods have 
+This plugin was designed to detect and quantify the distance and the goodness of periodicity between cellular periodic structures. 
+Additionally, it can be used to detect and quantify the periodicity shift between two periodic stuctures.
 
 &nbsp;
+
 <p align="center">
-    <img src="static/workflow.svg" width="100%">
+    <div style="display: flex">
+        <div style="flex: 1.5 ; padding: 10px">
+            <img src="static/UM BUT.svg">
+        </div>
+        <div style="flex: 2.3; position: relative">
+            <img src="static/AC EX BUT.svg" style="position: absolute; top: 0 ; padding: 10px">
+            <img src="static/CC EX BUT.svg" style="position: absolute; bottom: 0 ; padding: 15px">
+        </div>
+    </div>
 </p>
-&nbsp;
-
 
 ----------------------------------
 

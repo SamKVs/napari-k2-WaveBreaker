@@ -646,11 +646,6 @@ border-radius: 10px;</string>
                <string>Fixed</string>
               </property>
              </item>
-             <item>
-              <property name="text">
-               <string>Custom</string>
-              </property>
-             </item>
             </widget>
            </item>
           </layout>
@@ -754,11 +749,6 @@ border-radius: 10px;</string>
              <item>
               <property name="text">
                <string>Numpy</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Miso</string>
               </property>
              </item>
             </widget>

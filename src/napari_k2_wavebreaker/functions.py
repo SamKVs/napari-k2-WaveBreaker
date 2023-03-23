@@ -129,9 +129,6 @@ def gridsplit(array, mode, val):
 
         return grids
 
-    if mode == "Custom":
-        print(napari.layers.Shapes)
-
 
 def autocorr(x, method):
     def misoformula(list, index):
