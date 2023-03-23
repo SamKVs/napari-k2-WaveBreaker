@@ -56,16 +56,17 @@ Additionally, it can be used to detect and quantify the periodicity shift betwee
 
 &nbsp;
 
-<a href="">
+<a href="static/WaveBreaker User Manual.pdf">
     <img src="static/UM BUT.svg" width="50%">  
 </a>
 
 <a href="static/TEMPLATE AUTOCORRELATION 0.17-0.21 (x10).xlsx">
     <img src="static/AC EX BUT.svg" width="50%">  
 </a>
-<img src="static/UM BUT.svg" style="width: 50%">
-<img src="static/AC EX BUT.svg" style="width: 50%">
-<img src="static/CC EX BUT.svg" style="width: 50%">
+
+<a href="static/TEMPLATE CROSSCORRELATION (x15).xlsx">
+    <img src="static/CC EX BUT.svg" width="50%">  
+</a>
 
 
 ----------------------------------
