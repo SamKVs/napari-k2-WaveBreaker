@@ -76,9 +76,9 @@ https://napari.org/plugins/index.html
 
 ## Installation
 
-You can install `napari-k2-autocorrelation` via [pip]:
+You can install `napari-k2-WaveBreaker` via [pip]:
 
-    pip install napari-k2-autocorrelation
+    pip install napari-k2-WaveBreaker
 
 ## Contributing
 

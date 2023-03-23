@@ -189,8 +189,6 @@ def FFT(array,pixpermicron):
 
     plt.plot(x, FFT)
 
-    plt.show()
-
 
 
 
