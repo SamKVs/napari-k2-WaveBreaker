@@ -57,15 +57,9 @@ Additionally, it can be used to detect and quantify the periodicity shift betwee
 &nbsp;
 
 <p align="center">
-    <div style="display: flex">
-        <div style="flex: 1.5 ; padding: 10px">
-            <img src="static/UM BUT.svg">
-        </div>
-        <div style="flex: 2.3; position: relative">
-            <img src="static/AC EX BUT.svg" style="position: absolute; top: 0 ; padding: 10px">
-            <img src="static/CC EX BUT.svg" style="position: absolute; bottom: 0 ; padding: 15px">
-        </div>
-    </div>
+    <img src="static/UM BUT.svg" style="width: 50%">
+    <img src="static/AC EX BUT.svg" style="width: 50%">
+    <img src="static/CC EX BUT.svg" style="width: 50%">
 </p>
 
 ----------------------------------
