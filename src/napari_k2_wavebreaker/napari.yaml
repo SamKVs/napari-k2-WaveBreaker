@@ -1,0 +1,10 @@
+name: napari-k2-WaveBreaker
+display_name: K2 Wave Breaker
+contributions:
+  commands:
+    - id: napari-k2-WaveBreaker.AutocorrelationTool
+      python_name: napari_k2_wavebreaker._widget:AutocorrelationTool
+      title: Initiate AutocorrelationTool
+  widgets:
+    - command: napari-k2-WaveBreaker.AutocorrelationTool
+      display_name: Main

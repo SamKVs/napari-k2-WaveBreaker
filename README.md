@@ -1,16 +1,17 @@
-# napari-k2-autocorrelation
+# napari-k2-WaveBreaker
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-k2-autocorrelation.svg?color=green)](https://github.com/SamKVs/napari-k2-autocorrelation/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-k2-autocorrelation.svg?color=green)](https://pypi.org/project/napari-k2-autocorrelation)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-k2-autocorrelation.svg?color=green)](https://python.org)
-[![tests](https://github.com/SamKVs/napari-k2-autocorrelation/workflows/tests/badge.svg)](https://github.com/SamKVs/napari-k2-autocorrelation/actions)
-[![codecov](https://codecov.io/gh/SamKVs/napari-k2-autocorrelation/branch/main/graph/badge.svg)](https://codecov.io/gh/SamKVs/napari-k2-autocorrelation)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-autocorrelation)](https://napari-hub.org/plugins/napari-k2-autocorrelation)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-k2-WaveBreaker.svg?color=green)](https://github.com/SamKVs/napari-k2-WaveBreaker/raw/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/napari-k2-WaveBreaker.svg?color=green)](https://pypi.org/project/napari-k2-WaveBreaker)
+[![Python Version](https://img.shields.io/pypi/pyversions/napari-k2-WaveBreaker.svg?color=green)](https://python.org)
+[![tests](https://github.com/SamKVs/napari-k2-WaveBreaker/workflows/tests/badge.svg)](https://github.com/SamKVs/napari-k2-WaveBreaker/actions)
+[![codecov](https://codecov.io/gh/SamKVs/napari-k2-WaveBreaker/branch/main/graph/badge.svg)](https://codecov.io/gh/SamKVs/napari-k2-WaveBreaker)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-k2-WaveBreaker)](https://napari-hub.org/plugins/napari-k2-WaveBreaker)
 
 <div>
     <img src="static/Logo.png">
 </div>
 <h2>About this plugin</h2>
+
 
 This Napari plugin was designed for the detection and quantification of periodic biological structures.
 As this plugin has not been uploaded to napari-hub as of this moment it **cannot be installed on a pre-compiled, bundled 
@@ -19,7 +20,7 @@ version of Napari**. Therefore Napari will need to be installed as a python pack
 Further information about the installation and licensing of the plugin can be found below. 
 
 
-<h3>Background</h3>
+<h3>Guide</h3>
 
 Actin is the most abundant protein in eukaryotic cells. As it is part of the cytoskeleton its function is essential for 
 the maintenance of the cell's morphological structure. In neurons, it was only recently that researchers started paying 
@@ -51,21 +52,24 @@ fitted with 4 APDs. Post-acquisition, image was deconvolved using Huygens Deconv
 
 &nbsp;
 
-Because of the relative novelty of super resolution imaging of the AIS there is no standardized way of quantifying the
-goodness of periodicity at this moment. Previous publication have attempted the following methods:
-
-* Dawing a line multipixel-wide line through a part of the AIS where periodicity is noticable. hereafter, autocorrelation
-can be performed on the intensity profile of the line. With this method the researcher can extract the frequency of the 
-profile, on in other words the distance between 2 rings, and a goodness value of periodicity. The problem with this
-technique is that the location of the line is undeniably bias as the researcher will always choose a region with the
-best periodity relative to the rest of the image.
-* 
+This plugin was designed to detect and quantify the distance and the goodness of periodicity between cellular periodic structures. 
+Additionally, it can be used to detect and quantify the periodicity shift between two periodic stuctures.
 
 &nbsp;
-<p align="center">
-    <img src="static/workflow.svg" width="100%">
-</p>
-&nbsp;
+
+
+
+<a href="static/WaveBreaker User Manual.pdf">
+    <img src="static/UM BUT.svg" width="50%">  
+</a>
+
+<a href="static/TEMPLATE AUTOCORRELATION 0.17-0.21 (x10).xlsx">
+    <img src="static/AC EX BUT.svg" width="50%">  
+</a>
+
+<a href="static/TEMPLATE CROSSCORRELATION (x15).xlsx">
+    <img src="static/CC EX BUT.svg" width="50%">  
+</a>
 
 
 ----------------------------------
@@ -82,9 +86,9 @@ https://napari.org/plugins/index.html
 
 ## Installation
 
-You can install `napari-k2-autocorrelation` via [pip]:
+You can install `napari-k2-WaveBreaker` via [pip]:
 
-    pip install napari-k2-autocorrelation
+    pip install napari-k2-WaveBreaker
 
 ## Contributing
 
