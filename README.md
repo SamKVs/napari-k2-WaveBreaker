@@ -12,6 +12,7 @@
 </div>
 <h2>About this plugin</h2>
 
+
 This Napari plugin was designed for the detection and quantification of periodic biological structures.
 As this plugin has not been uploaded to napari-hub as of this moment it **cannot be installed on a pre-compiled, bundled 
 version of Napari**. Therefore Napari will need to be installed as a python package 
@@ -57,19 +58,19 @@ Additionally, it can be used to detect and quantify the periodicity shift betwee
 &nbsp;
 
 
-<div style="display: flex; flex-direction: row;">
-    <a href="static/WaveBreaker User Manual.pdf">
-        <img src="static/UM BUT.svg" width="90%">  
-    </a>
-    <div style="display: flex; flex-direction: column;">
-        <a href="static/TEMPLATE AUTOCORRELATION 0.17-0.21 (x10).xlsx">
-            <img src="static/AC EX BUT.svg" width="90%">  
-        </a>
-        <a href="static/TEMPLATE CROSSCORRELATION (x15).xlsx">
-            <img src="static/CC EX BUT.svg" width="90%">  
-        </a>
-    </div>
-</div>
+
+<a href="static/WaveBreaker User Manual.pdf">
+    <img src="static/UM BUT.svg" width="50%">  
+</a>
+
+<a href="static/TEMPLATE AUTOCORRELATION 0.17-0.21 (x10).xlsx">
+    <img src="static/AC EX BUT.svg" width="50%">  
+</a>
+
+<a href="static/TEMPLATE CROSSCORRELATION (x15).xlsx">
+    <img src="static/CC EX BUT.svg" width="50%">  
+</a>
+
 
 ----------------------------------
 
