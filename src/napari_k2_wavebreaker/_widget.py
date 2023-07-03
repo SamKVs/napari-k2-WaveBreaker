@@ -27,6 +27,7 @@ from skimage.color import rgb2gray
 
 from napari.qt.threading import WorkerBase, WorkerBaseSignals
 from napari.utils.notifications import show_info
+from napari import Viewer, run
 
 if TYPE_CHECKING:
     import napari
@@ -37,10 +38,16 @@ import warnings
 from napari_plugin_engine import napari_hook_implementation
 from pathlib import Path
 
-from .autocorrelation import *
-from .ClickLabel import ClickLabel
-from .crosscorrelation import *
-from .functions import *
+try:
+    from .autocorrelation import *
+    from .ClickLabel import ClickLabel
+    from .crosscorrelation import *
+    from .functions import *
+except ImportError:
+    from autocorrelation import *
+    from ClickLabel import ClickLabel
+    from crosscorrelation import *
+    from functions import *
 
 from scipy.ndimage import gaussian_filter
 from pathvalidate import sanitize_filename
@@ -369,8 +376,9 @@ class MyWorker(WorkerBase):
         self.path = path
         self.restrictdeg = restrictdeg
 
-    def work(self):
+    def run(self):
         print("ok")
+        print(self.outcsv)
         gridsplitmode = self.gridsplitmode
         # gridsplitmode = "Auto"
 
@@ -407,25 +415,20 @@ class MyWorker(WorkerBase):
 
                 self.pool.close()
                 self.pool.join()
-
+                print("analysis finished")
                 self.progress.emit([True, len(indexgrids)])
-                output = np.array(output)
-                weighted_avg = np.average(output[:, 0], weights=output[:, 1])
-                intervallist = output[:, 2]
-                medianfrequency = np.average(output[:, 2], weights=output[:, 1])
-                print('FINAL RESULT', weighted_avg)
-                print(intervallist)
-                print('most likely periodicity interval', medianfrequency)
+                df = pd.concat(output)
+
 
                 if not self.visoutput == "None":
-                    df = pd.concat(output[:, 3])
                     PrincipleComponents(df, self.visoutput,
                                         (self.visleft, self.visright))
-                if not self.outcsv == "None":
-                    df = pd.concat(output[:, 3])
-                    df2 = pd.DataFrame({"total grids": [np.shape(indexgrids)[0]]})
+                if self.outcsv:
+                    df2 = pd.DataFrame({"total grids": [len(indexgrids)]})
                     new = pd.concat([df, df2], axis=1)
                     new.to_csv(self.path + "/" + self.currentlayer + ".csv", sep=";")
+
+
 
         else:
             grids_a = gridsplit(self.maskedarray, gridsplitmode, gridsplitval)
@@ -456,22 +459,16 @@ class MyWorker(WorkerBase):
 
                 self.pool.close()
                 self.pool.join()
-
+                print("Analysis Complete")
                 self.progress.emit([True, len(indexgrids)])
-                output = np.array(output)
+                df = pd.concat(output)
 
                 if not self.visoutput == "None":
-                    df = pd.concat(output[:, 0])
                     PrincipleComponents(df, self.visoutput,
                                         (self.visleft, self.visright))
-                if self.outcsv is not None:
 
-                    try:
-                        df = pd.concat(output[:, 0])
-                    except TypeError:
-                        df = output[0]
-
-                    df2 = pd.DataFrame({"total grids": [np.shape(indexgrids)[0]]})
+                if self.outcsv:
+                    df2 = pd.DataFrame({"total grids": [len(indexgrids)]})
                     new = pd.concat([df, df2], axis=1)
                     new.to_csv(self.path + "/" + sanitize_filename(self.currentlayer + ".csv"), sep=";")
 
@@ -483,6 +480,19 @@ class MyWorker(WorkerBase):
 
 @napari_hook_implementation
 def napari_experimental_provide_dock_widget():
-    if platform.system() == "Darwin":
-        set_start_method('spawn')
+    # if platform.system() == "Darwin":
+    #     set_start_method('spawn')
     return AutocorrelationTool
+
+
+if __name__ == '__main__':
+    viewer = Viewer()
+
+    Autocorrelation_widget = AutocorrelationTool(viewer)  # Create instance from our class
+    viewer.window.add_dock_widget(Autocorrelation_widget, area='right')  # Add our gui instance to napari viewer
+
+    def updatelayer(event):
+        Autocorrelation_widget.updatelayer()
+
+
+    run()
