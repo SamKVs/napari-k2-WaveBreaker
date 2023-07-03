@@ -1,7 +1,10 @@
 
 import os
 import matplotlib.pyplot as plt
-from .functions import *
+try:
+    from .functions import *
+except ImportError:
+    from functions import *
 
 def cycledegreesAuto(input, pxpermicron, filename, mode, restrictdeg, outputimg, outputcsv, outputpath):
     print("lets go")
@@ -107,12 +110,11 @@ def cycledegreesAuto(input, pxpermicron, filename, mode, restrictdeg, outputimg,
     try:
         maxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 0]
         frequencyatmaxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 2]
-
-    except ValueError:
+    except Exception:
         maxdeg = np.nan
         frequencyatmaxdeg = np.nan
 
-        return np.nan, np.count_nonzero(np.isnan(grid)), frequencyatmaxdeg, dfPC
+        return dfPC
 
     if outputimg:
         fig, axes = plt.subplots(nrows=3)
@@ -140,4 +142,4 @@ def cycledegreesAuto(input, pxpermicron, filename, mode, restrictdeg, outputimg,
 
         plt.savefig(outputpath + "/" + filename + "/" + str(index) + ".jpg")
 
-    return np.nanmax(fitlist[:, 1]), np.size(grid) - np.count_nonzero(np.isnan(grid)), frequencyatmaxdeg, dfPC
+    return dfPC

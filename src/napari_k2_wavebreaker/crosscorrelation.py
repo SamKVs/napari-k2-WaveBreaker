@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathvalidate import sanitize_filename
 
-from .functions import *
+try:
+    from .functions import *
+except ImportError:
+    from functions import *
 
 def peakvalley(autocorlist, pxpermicron_norm):
     # Determine all the peaks and values of the autocorrelation to calculate the frequency and periodicity
@@ -45,6 +48,8 @@ def middlepeak(crosscorlist):
 
     if len(closest) == 1:
         return closest[0]
+    elif len(closest) == 0:
+        return np.nan
     elif crosscorlist[0, closest[0]] >= crosscorlist[0, closest[1]]:
         return closest[0]
     else:
@@ -144,7 +149,10 @@ def cycledegreesCross(input, pxpermicron, filename, mode, restrictdeg, outputimg
                 fitlist.append([deg, periodicity_a, frequency_a])
                 cormin_c, cormax_c, periodicity_c, frequency_c = peakvalley(autocorlist_c, pxpermicron_norm)
                 crosscorlagindex = middlepeak(crosscorarray)
-                crosscorlag = crosscorarray[1,crosscorlagindex]
+                if np.isnan(crosscorlagindex):
+                    crosscorlag = np.nan
+                else:
+                    crosscorlag = crosscorarray[1,crosscorlagindex]
 
                 # Add all information to the tempdict
                 tempdict[deg] = {
@@ -186,7 +194,7 @@ def cycledegreesCross(input, pxpermicron, filename, mode, restrictdeg, outputimg
         maxdeg = np.nan
         frequencyatmaxdeg = np.nan
 
-        return dfPC, np.nan
+        return dfPC
 
     if outputimg:
         fig, axes = plt.subplots(nrows=6, figsize=(6, 11))
@@ -233,4 +241,4 @@ def cycledegreesCross(input, pxpermicron, filename, mode, restrictdeg, outputimg
 
         plt.savefig(outputpath + "/" + filename + "/" + str(index) + ".jpg")
 
-    return dfPC, np.nan
+    return dfPC
