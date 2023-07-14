@@ -1,4 +1,4 @@
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 from ._sample_data import make_sample_data
 from ._widget import AutocorrelationTool
 from . import autocorrelation
