@@ -7,4 +7,4 @@ contributions:
       title: Initiate AutocorrelationTool
   widgets:
     - command: napari-k2-WaveBreaker.AutocorrelationTool
-      display_name: Main
+      display_name: napari-k2-WaveBreaker

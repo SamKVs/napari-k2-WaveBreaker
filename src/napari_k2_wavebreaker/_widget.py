@@ -11,20 +11,13 @@ from qtpy.QtWidgets import QWidget, QFileDialog
 from qtpy.QtGui import QPixmap
 import qtpy.QtCore
 from qtpy import uic
-import os
-import copy
-import numpy as np
-import matplotlib.pyplot as plt
 from multiprocessing import Pool, set_start_method, get_start_method
 from functools import partial
-import pandas as pd
 import cv2
 import platform
 
-from skimage import measure
 from skimage.morphology import disk
 from skimage.color import rgb2gray
-from skimage.io import imread, imshow
 
 from napari.qt.threading import WorkerBase, WorkerBaseSignals
 from napari.utils.notifications import show_info
@@ -37,7 +30,6 @@ import warnings
 
 
 from napari_plugin_engine import napari_hook_implementation
-from pathlib import Path
 
 try:
     from .autocorrelation import *
