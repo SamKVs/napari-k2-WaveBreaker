@@ -57,8 +57,8 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
                                            "autocorr_c": autocorr(df_intensity["mean_intensity_c"], "Numpy"), # Calculate autocorrelation
                                            "crosscorr": autocorr([df_intensity["mean_intensity_a"], df_intensity["mean_intensity_c"]], "Cross")}) # Calculate crosscorrelation
 
-            df_correlation["length"] = list(np.around(np.array(range(0, df_correlation.shape[0])) - (df_correlation.shape[0]/2)) * labelslib[i]["pxoffset"]) # Generate length column normalized to the pxoffset based on the angle
-
+            lenindex = df_intensity.shape[0] - 1
+            df_correlation["length"] = list(np.linspace(-lenindex, lenindex, 2 * lenindex + 1) * labelslib[i]["pxoffset"])  # Generate length column normalized to the pxoffset based on the angle
 
             ### EXTRACT FREQ, PERIODITY AND ADD TO ANGLE DICT ###
             cormin_a, cormax_a, periodicity_a, frequency_a = peakvalley(df_correlation["autocorr_a"], df_correlation["length"]) # Calculate periodicity and frequency of channel 1
@@ -93,7 +93,7 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
     ### PLOT THE DATA ###
 
     if outputimg:
-        if df_grid.empty:
+        if df_grid["periodicity_a"].isnull().values.all():
             print("No data to plot")
         else:
             ### DETERMINE THE BEST ANGLE FOR THE PERIODICITY ###
@@ -123,7 +123,7 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
 
             compactdf = compactdf.dropna().reset_index(drop=True)
 
-            fig, axs = plt.subplots(7, 1, figsize=(5, 12))
+            fig, axs = plt.subplots(8, 1, figsize=(5, 14))
             sns.scatterplot(data=compactdf.where(compactdf["Channel"] == "a"), x="Deg", y="Frequency", hue="Periodicity", size="Periodicity", palette= sns.color_palette("dark:#3eb0db_r", as_cmap=True) , ax=axs[0], legend=False)
             sns.scatterplot(data=compactdf.where((compactdf["Channel"] == "a") & (compactdf["Selected"] == True)), x="Deg", y="Frequency", color="red", ax=axs[0], legend=False)
             axs[0].set_title("Frequency Disribution _ a")
@@ -145,15 +145,19 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
 
             sns.lineplot(data=aut, x="length", y="autocorr_a", ax=axs[6], color="blue")
             sns.lineplot(data=aut, x="length", y="autocorr_c", ax=axs[6], color="orange")
-            sns.lineplot(data=aut, x="length", y="crosscorr", ax=axs[6], color="green")
 
-            axs[6].axvline(x=crosscorlag, color='green', linestyle='-')
             axs[6].axvline(x=frequency_a, color='blue', linestyle='-')
             axs[6].axvline(x=frequency_c, color='orange', linestyle='-')
             #add labels
 
-            axs[6].set_title("P_a: " + str(round(periodicity_a,3)) + " / P_c: " + str(round(periodicity_c,3)) + " / CC(a-c): " + str(round(crosscorlag,3)))
+            axs[6].set_title("P_a: " + str(round(periodicity_a,3)) + " / P_c: " + str(round(periodicity_c,3)))
             axs[6].set_ylabel("Correlation")
+
+            sns.lineplot(data=aut, x="length", y="crosscorr", ax=axs[7], color="green")
+
+            axs[7].axvline(x=crosscorlag, color='green', linestyle='-')
+
+            axs[7].set_title("CC(a-c): " + str(round(crosscorlag,3)))
 
             plt.tight_layout()
 

@@ -50,8 +50,8 @@ def cycledegreesAuto(input, pxpermicron, filename, restrictdeg, outputimg, outpu
 
             df_correlation = pd.DataFrame({"autocorr_a": autocorr(df_intensity["mean_intensity_a"], "Numpy")}) # Calculate autocorrelation
 
-            df_correlation["length"] = list(np.around(np.array(range(0, df_correlation.shape[0])) - (df_correlation.shape[0]/2)) * labelslib[i]["pxoffset"]) # Generate length column normalized to the pxoffset based on the angle
-
+            lenindex = df_intensity.shape[0] - 1
+            df_correlation["length"] = list(np.linspace(-lenindex, lenindex, 2 * lenindex + 1) * labelslib[i]["pxoffset"])  # Generate length column normalized to the pxoffset based on the angle
 
             ### EXTRACT FREQ, PERIODITY AND ADD TO ANGLE DICT ###
             cormin_a, cormax_a, periodicity_a, frequency_a = peakvalley(df_correlation["autocorr_a"], df_correlation["length"]) # Calculate periodicity and frequency of channel 1
@@ -76,7 +76,7 @@ def cycledegreesAuto(input, pxpermicron, filename, restrictdeg, outputimg, outpu
     ### PLOT THE DATA ###
 
     if outputimg:
-        if df_grid.empty:
+        if df_grid["periodicity_a"].isnull().values.all():
             print("No data to plot")
         else:
             ### DETERMINE THE BEST ANGLE FOR THE PERIODICITY ###
