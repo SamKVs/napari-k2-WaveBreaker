@@ -1,5 +1,4 @@
-__version__ = "0.1.4"
-from ._sample_data import make_sample_data
+__version__ = "0.2.0"
 from ._widget import AutocorrelationTool
 from . import autocorrelation
 from . import ClickLabel

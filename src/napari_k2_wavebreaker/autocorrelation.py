@@ -1,145 +1,133 @@
-
 import os
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from skimage import measure
+import seaborn as sns
+
 try:
     from .functions import *
 except ImportError:
     from functions import *
 
-def cycledegreesAuto(input, pxpermicron, filename, mode, restrictdeg, outputimg, outputcsv, outputpath):
+
+def cycledegreesAuto(input, pxpermicron, filename, restrictdeg, outputimg, outputpath):
     print("lets go")
     grid = input[1]
-    index = input[0]
-    fitlist = []
-    tempdict = {}
-    dfPC = pd.DataFrame(columns=["deg", "periodicity", "frequency", "gridindex"])
+
+    gridnumber = input[0]
+    tempdict = {} # Dictionary to store the data of every degree
+    df_grid = pd.DataFrame(columns=["deg", "periodicity_a", "frequency_a", "gridindex", "pxpercentage"]) # Dataframe to store the data of every degree
     gridshape = np.shape(grid)
     gridpercentage = (np.size(grid) - np.count_nonzero(np.isnan(grid))) / np.size(grid)
 
-    # Determine the biological length and with of the image
-    biorow = gridshape[0] / pxpermicron
-    biocol = gridshape[1] / pxpermicron
-    midangle = np.arctan(biorow / biocol)
 
-    for deg in range(restrictdeg[0], restrictdeg[1]):
+    ### GRADIENT LABELS GENERATION ###
+    angles = range(restrictdeg[0], restrictdeg[1]) # range of angles to be tested
+    mask = np.ones(gridshape)
+    mask[np.isnan(grid)] = 0
 
-        tempdict[deg] = {}
+    labelslib = gengradient(angles, mask, gridshape, pxpermicron) # Generate gradients for every degree
 
-        # From the defined angle calculate the coordinates where the midline goes through the border of the image
-        intersect, intersectoposite = midline(grid, deg)
+    ### MEASURE LABELS FOR EVERY DEGREE ###
 
-        originalintersect = copy.deepcopy(intersect)
-        originalintersectoposite = copy.deepcopy(intersectoposite)
+    for i in labelslib:
+        data_a = measure.regionprops_table(labelslib[i]["labels"],
+                                           grid,
+                                           properties=['label', 'mean_intensity'])
 
-        x0 = intersect[1]
-        x1 = intersectoposite[1]
-        y0 = intersect[0]
-        y1 = intersectoposite[0]
+        ### CHECK FOR CONTINUEITY ###
+        if checkConsecutive(data_a["label"]) == False:
+            pass
+        else:
+            ### CALCULATE CORRELATION ###
+            tempdict[i] = {}  # Create a dictionary for every degree
 
-        meanarray = []
+            df_intensity = pd.DataFrame({"mean_intensity_a": data_a["mean_intensity"]})
 
-        # Starting at the midline intersect migrate the border points with a vector perpendicular to the defined degree.
-        while checker(gridshape, intersect, intersectoposite):
-            if np.isnan(extractline(grid, intersect, intersectoposite)).all():
-                meanarray.append(np.nan)
-            else:
-                meanarray.append(np.nanmean(extractline(grid, intersect, intersectoposite)))
-            intersect, intersectoposite = nextpointsmart(gridshape, deg, intersect, intersectoposite, 'plus')
+            df_intensity["length"] = list(np.array(range(0, df_intensity.shape[0])) * labelslib[i]["pxoffset"]) # Generate length column normalized to the pxoffset based on the angle
 
-        # Same as above but now perpendicular to the defined degree in the other direction
-        while checker(gridshape, originalintersect, originalintersectoposite):
-            if np.isnan(extractline(grid, originalintersect, originalintersectoposite)).all():
-                meanarray.append(np.nan)
-            else:
-                meanarray.insert(0, np.nanmean(extractline(grid, originalintersect, originalintersectoposite)))
-            originalintersect, originalintersectoposite = nextpointsmart(gridshape, deg, originalintersect,
-                                                                         originalintersectoposite, 'min')
 
-        # if all points in the meanarray ar 0 or NaN, the array is ignored
-        if not (np.isnan(np.nanmax(meanarray)) or np.nanmax(meanarray) == 0):
+            df_correlation = pd.DataFrame({"autocorr_a": autocorr(df_intensity["mean_intensity_a"], "Numpy")}) # Calculate autocorrelation
 
-            # Normalizes the user defined px/micron value based on the defined angle
-            pxpermicron_norm = normalizepx(gridshape, midangle, deg, pxpermicron, len(meanarray))
+            lenindex = df_intensity.shape[0] - 1
+            df_correlation["length"] = list(np.linspace(-lenindex, lenindex, 2 * lenindex + 1) * labelslib[i]["pxoffset"])  # Generate length column normalized to the pxoffset based on the angle
 
-            # Clean the NaN values at the edges of the meanarray
-            newmeanarray = nanarraycleaner(meanarray)
+            ### EXTRACT FREQ, PERIODITY AND ADD TO ANGLE DICT ###
+            cormin_a, cormax_a, periodicity_a, frequency_a = peakvalley(df_correlation["autocorr_a"], df_correlation["length"]) # Calculate periodicity and frequency of channel 1
+            tempdict[i]["periodicity_a"] = periodicity_a
+            tempdict[i]["frequency_a"] = frequency_a
+            tempdict[i]["cormin_a"] = cormin_a
+            tempdict[i]["cormax_a"] = cormax_a
 
-            # if there is still NaN values in the middle of the meanarray the array is discarded
-            if not np.isnan(newmeanarray).any():
+            ### ADD RAW INTENSITY AND CORRELATION DATA TO TEMP DICT ###
+            tempdict[i]["df_intensity"] = df_intensity
+            tempdict[i]["df_correlation"] = df_correlation
 
-                # Autocorrelation is done on the meanarray
-                autocorlist = autocorr(newmeanarray, mode)
+            ### ADD DATA TO ANGLE DF ###
+            df_angle = pd.DataFrame({"deg": [i],
+                                      "periodicity_a": [periodicity_a],
+                                      "frequency_a": [frequency_a],
+                                      "gridindex": [filename + " / " + str(gridnumber)],
+                                      "pxpercentage": [gridpercentage]})
+            df_grid = pd.concat([df_grid, df_angle])
 
-                # Determine all the peaks and values of the autocorrelation to calculate the frequency and periodicity
-                cormin = (np.diff(np.sign(np.diff(autocorlist))) > 0).nonzero()[0] + 1  # local min
-                cormax = (np.diff(np.sign(np.diff(autocorlist))) < 0).nonzero()[0] + 1  # local max
-                if len(cormax) < 3 or len(cormin) < 2:
-                    periodicity = np.nan
-                    frequency = np.nan
-                    fitlist.append([deg, periodicity, frequency])
-                else:
-                    maxpoint = autocorlist[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
-                    minpoint = autocorlist[cormin[int(len(cormin) / 2)]]
 
-                    periodicity = maxpoint - minpoint
-                    frequency = (cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1] -
-                                 len(autocorlist) / 2) / pxpermicron_norm
-                    fitlist.append([deg, periodicity[0], frequency[0]])
-
-                # Add all information to the tempdict
-                tempdict[deg] = {
-                    "x0": x0,
-                    "x1": x1,
-                    "y0": y0,
-                    "y1": y1,
-                    "intensityplot": newmeanarray,
-                    "autocorrelationplot": autocorlist,
-                    "cormin": cormin,
-                    "cormax": cormax,
-                    "pxpermicron": pxpermicron_norm
-                }
-
-                if not (np.isnan(periodicity) or np.isnan(frequency)):
-                    tempdf = pd.DataFrame({"deg": [deg], "periodicity": [periodicity[0]], "frequency": [frequency[0]],
-                                           "gridindex": [filename + " / " + str(index)],
-                                           "pxpercentage": [gridpercentage]})
-                    dfPC = pd.concat([dfPC, tempdf])
-
-    fitlist = np.array(fitlist, dtype="float32")
-
-    try:
-        maxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 0]
-        frequencyatmaxdeg = fitlist[np.nanargmax(fitlist[:, 1]), 2]
-    except Exception:
-        maxdeg = np.nan
-        frequencyatmaxdeg = np.nan
-
-        return dfPC
+    ### PLOT THE DATA ###
 
     if outputimg:
-        fig, axes = plt.subplots(nrows=3)
-        axes[0].imshow(grid)
-        axes[0].plot([tempdict[maxdeg]["x0"], tempdict[maxdeg]["x1"]], [tempdict[maxdeg]["y0"], tempdict[maxdeg]["y1"]],
-                     'ro-')
-        axes[0].axis('image')
+        if df_grid["periodicity_a"].isnull().values.all():
+            print("No data to plot")
+        else:
+            ### DETERMINE THE BEST ANGLE FOR THE PERIODICITY ###
+            periodicity_a_best_index = np.nanargmax(list(df_grid["periodicity_a"]))
+            deg_at_best = df_grid["deg"].iloc[periodicity_a_best_index]
 
-        cormin = tempdict[maxdeg]["cormin"]
-        cormax = tempdict[maxdeg]["cormax"]
-        autocorlist = tempdict[maxdeg]["autocorrelationplot"]
-        micronlist = np.array(range(len(autocorlist))) / tempdict[maxdeg]["pxpermicron"]
-        micronlist = micronlist - (np.max(micronlist) / 2)
-        micronlist2 = np.array(range(len(tempdict[maxdeg]["intensityplot"]))) / tempdict[maxdeg]["pxpermicron"]
+            df = tempdict[deg_at_best]["df_intensity"]
+            aut = tempdict[deg_at_best]["df_correlation"]
+            frequency_a = tempdict[deg_at_best]["frequency_a"]
+            periodicity_a = tempdict[deg_at_best]["periodicity_a"]
 
-        axes[1].plot(micronlist2, tempdict[maxdeg]["intensityplot"])
-        axes[2].plot(micronlist, autocorlist)
+            compactdf = pd.DataFrame(columns=["Deg", "Channel", "Periodicity", "Frequency", "Selected"])
+            compactdf = pd.concat([compactdf, pd.DataFrame({"Deg": df_grid["deg"],
+                                                            "Channel": "a",
+                                                            "Periodicity": df_grid["periodicity_a"],
+                                                            "Frequency": df_grid["frequency_a"]})])
 
-        plt.subplots_adjust(hspace=0.5)
+            compactdf["Selected"] = np.where(compactdf["Deg"] == deg_at_best, True, False)
 
-        try:
-            os.mkdir(outputpath + "/" + filename)
-        except FileExistsError:
-            pass
+            compactdf = compactdf.dropna().reset_index(drop=True)
 
-        plt.savefig(outputpath + "/" + filename + "/" + str(index) + ".jpg")
+            fig, axs = plt.subplots(5, 1, figsize=(5, 9))
+            sns.scatterplot(data=compactdf.where(compactdf["Channel"] == "a"), x="Deg", y="Frequency", hue="Periodicity", size="Periodicity", palette= sns.color_palette("dark:#3eb0db_r", as_cmap=True) , ax=axs[0], legend=False)
+            sns.scatterplot(data=compactdf.where((compactdf["Channel"] == "a") & (compactdf["Selected"] == True)), x="Deg", y="Frequency", color="red", ax=axs[0], legend=False)
+            axs[0].set_title("Frequency Disribution _ a")
+            axs[1].imshow(grid, cmap="gray")
+            axs[1].set_title("Grid _ a")
+            axs[2].imshow(labelslib[deg_at_best]["labels"])
+            axs[2].set_title(f"Labels gradient at {deg_at_best} degrees")
 
-    return dfPC
+            sns.lineplot(data=df, x="length", y="mean_intensity_a", ax=axs[3], color="blue")
+
+            axs[3].set_title("Intensity Profiles")
+            axs[3].set_ylabel("Intensity")
+
+            sns.lineplot(data=aut, x="length", y="autocorr_a", ax=axs[4], color="blue")
+
+            axs[4].axvline(x=frequency_a, color='blue', linestyle='-')
+
+            #add labels
+
+            axs[4].set_title("P_a: " + str(round(periodicity_a,3)))
+            axs[4].set_ylabel("Correlation")
+
+            plt.tight_layout()
+
+
+            if not os.path.exists(outputpath + "/" + filename):
+                os.mkdir(outputpath + "/" + filename)
+
+            plt.savefig(outputpath + "/" + filename + "/" + str(gridnumber) + ".jpg")
+
+    return df_grid
+

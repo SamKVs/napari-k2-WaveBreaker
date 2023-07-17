@@ -11,17 +11,11 @@ from qtpy.QtWidgets import QWidget, QFileDialog
 from qtpy.QtGui import QPixmap
 import qtpy.QtCore
 from qtpy import uic
-import os
-import copy
-import numpy as np
-import matplotlib.pyplot as plt
 from multiprocessing import Pool, set_start_method, get_start_method
 from functools import partial
-import pandas as pd
 import cv2
 import platform
 
-from skimage import measure
 from skimage.morphology import disk
 from skimage.color import rgb2gray
 
@@ -36,7 +30,6 @@ import warnings
 
 
 from napari_plugin_engine import napari_hook_implementation
-from pathlib import Path
 
 try:
     from .autocorrelation import *
@@ -101,7 +94,7 @@ class AutocorrelationTool(QWidget):
 
         self.comboBox_mode.currentIndexChanged.connect(self.changeLock_zone)
         self.comboBox_gridsplit.currentIndexChanged.connect(self.changeLock_grid)
-        self.comboBox_visOutput.currentIndexChanged.connect(self.changeLock_vis)
+
         self.angleSlider.valueChanged.connect(self.updateslidervalue)
         self.analyze.clicked.connect(self.Autocorrelate)
         self.pushButton_File.clicked.connect(self.filedialog)
@@ -158,16 +151,6 @@ class AutocorrelationTool(QWidget):
         else:
             self.spinBox_gridLeft.setEnabled(True)
             self.spinBox_gridRight.setEnabled(True)
-
-    # Locks visualization paraneters when None is selected
-    def changeLock_vis(self):
-        if self.comboBox_visOutput.currentText() == "None":
-            self.doubleSpinBox_visLeft.setEnabled(False)
-            self.doubleSpinBox_visRight.setEnabled(False)
-
-        else:
-            self.doubleSpinBox_visLeft.setEnabled(True)
-            self.doubleSpinBox_visRight.setEnabled(True)
 
     # Updates comboboxes
     def updatelayer(self):
@@ -302,9 +285,6 @@ class AutocorrelationTool(QWidget):
                                          gridsplitleft=self.spinBox_gridLeft.value(),
                                          gridsplitright=self.spinBox_gridRight.value(),
                                          autocormode=self.comboBox_AutocorMethod.currentText(),
-                                         visoutput=self.comboBox_visOutput.currentText(),
-                                         visleft=self.doubleSpinBox_visLeft.value(),
-                                         visright=self.doubleSpinBox_visRight.value(),
                                          pixelsize=self.spinBox_pixel.value(),
                                          outimg=self.checkBox_outImg.isChecked(),
                                          outcsv=self.checkBox_outCSV.isChecked(),
@@ -330,9 +310,6 @@ class MyWorker(WorkerBase):
         self.outcsv = None
         self.outimg = None
         self.pixelsize = None
-        self.visright = None
-        self.visleft = None
-        self.visoutput = None
         self.autocormode = None
         self.gridsplitright = None
         self.gridsplitleft = None
@@ -350,9 +327,6 @@ class MyWorker(WorkerBase):
                          gridsplitleft,
                          gridsplitright,
                          autocormode,
-                         visoutput,
-                         visleft,
-                         visright,
                          pixelsize,
                          outimg,
                          outcsv,
@@ -367,9 +341,6 @@ class MyWorker(WorkerBase):
         self.gridsplitleft = gridsplitleft
         self.gridsplitright = gridsplitright
         self.autocormode = autocormode
-        self.visoutput = visoutput
-        self.visleft = visleft
-        self.visright = visright
         self.pixelsize = pixelsize
         self.outimg = outimg
         self.outcsv = outcsv
@@ -403,9 +374,7 @@ class MyWorker(WorkerBase):
                 for _ in self.pool.imap_unordered(partial(cycledegreesAuto,
                                                           pxpermicron=self.pixelsize,
                                                           filename=self.currentlayer,
-                                                          mode=self.autocormode,
                                                           outputimg=self.outimg,
-                                                          outputcsv=self.outcsv,
                                                           restrictdeg=self.restrictdeg,
                                                           outputpath=self.path), indexgrids):
                     output.append(_)
@@ -419,10 +388,6 @@ class MyWorker(WorkerBase):
                 self.progress.emit([True, len(indexgrids)])
                 df = pd.concat(output)
 
-
-                if not self.visoutput == "None":
-                    PrincipleComponents(df, self.visoutput,
-                                        (self.visleft, self.visright))
                 if self.outcsv:
                     df2 = pd.DataFrame({"total grids": [len(indexgrids)]})
                     new = pd.concat([df, df2], axis=1)
@@ -447,9 +412,7 @@ class MyWorker(WorkerBase):
                 for _ in self.pool.imap_unordered(partial(cycledegreesCross,
                                                           pxpermicron=self.pixelsize,
                                                           filename=self.currentlayer,
-                                                          mode=self.autocormode,
                                                           outputimg=self.outimg,
-                                                          outputcsv=self.outcsv,
                                                           restrictdeg=self.restrictdeg,
                                                           outputpath=self.path), indexgrids):
                     output.append(_)
@@ -462,10 +425,6 @@ class MyWorker(WorkerBase):
                 print("Analysis Complete")
                 self.progress.emit([True, len(indexgrids)])
                 df = pd.concat(output)
-
-                if not self.visoutput == "None":
-                    PrincipleComponents(df, self.visoutput,
-                                        (self.visleft, self.visright))
 
                 if self.outcsv:
                     df2 = pd.DataFrame({"total grids": [len(indexgrids)]})

@@ -8,7 +8,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
+from skimage.draw import line
+from matplotlib.pyplot import xcorr
 
 if TYPE_CHECKING:
     import napari
@@ -21,6 +22,80 @@ def abspath(root, relpath):
     else:
         path = root.parent / relpath
     return str(path.absolute())
+
+def checkConsecutive(l):
+    return sorted(l) == list(range(min(l), max(l)+1))
+
+def deg2vec(angle):
+    return np.transpose(np.array([np.cos(np.radians(angle)), np.sin(np.radians(angle))]))
+
+def slide(start, end, rails, mshape, mask):
+    labels = np.zeros(mshape, dtype=int)
+    color = 0
+    if rails == 'y':
+        while end[0] <= mshape[0]-1:
+            rr, cc = line(int(start[0]), int(start[1]), int(end[0]), int(end[1]))
+            coords = np.array(list(zip(rr, cc)))
+            #clean up coordinates where either r or c is negative
+            coords = coords[coords[:,0] <= mshape[0]-1]
+            coords = coords[coords[:,1] <= mshape[1]-1]
+            coords = coords[coords[:,0] >= 0]
+            coords = coords[coords[:,1] >= 0]
+            labels[coords[:,0], coords[:,1]] = color
+            start[0] += 1
+            end[0] += 1
+            color += 1
+    else:
+        while end[1] <= mshape[1]-1:
+            rr, cc = line(int(start[0]), int(start[1]), int(end[0]), int(end[1]))
+            coords = np.array(list(zip(rr, cc)))
+            #clean up coordinates where either r or c is negative
+            coords = coords[coords[:,0] <= mshape[0]-1]
+            coords = coords[coords[:,1] <= mshape[1]-1]
+            coords = coords[coords[:,0] >= 0]
+            coords = coords[coords[:,1] >= 0]
+            labels[coords[:,0], coords[:,1]] = color
+            start[1] += 1
+            end[1] += 1
+            color += 1
+
+    labels[mask == 0] = np.ma.masked
+    return labels
+
+def gengradient(angles, mask, gridshape, pxpermicron):
+    labelslib = {}
+    vec = deg2vec(list(angles))
+    rotvec = np.matmul(vec, np.array([[np.cos(np.radians(-45)), -np.sin(np.radians(-45))],
+                                      [np.sin(np.radians(-45)), np.cos(np.radians(-45))]]))
+    for index, i in enumerate(rotvec):
+        tan = np.tan(np.radians(angles[index]))
+        tan90 = np.tan(np.radians(angles[index] + 90))
+        if all(i >= 0) or all(i < 0):
+            rails = 'y'
+            if tan >= 0:
+                start = [0, gridshape[1] - 1]
+                end = [-tan * gridshape[1], 0]
+                pxoffset = abs(np.cos(np.radians(angles[index])) * (1/pxpermicron))
+            else:
+                start = [0, 0]
+                end = [tan * gridshape[1], gridshape[1] - 1]
+                pxoffset = abs(np.cos(np.radians(angles[index])) * (1/pxpermicron))
+        else:
+            rails = 'x'
+            if tan >= 0:
+                start = [gridshape[0] - 1, 0]
+                end = [0, tan90 * gridshape[0]]
+                pxoffset = abs(np.sin(np.radians(angles[index])) * (1/pxpermicron))
+            else:
+                start = [0, 0]
+                end = [gridshape[0] - 1, - tan90 * gridshape[0]]
+                pxoffset = abs(np.sin(np.radians(angles[index])) * (1/pxpermicron))
+
+        labelslib[angles[index]] = {}
+        labelslib[angles[index]]["labels"] = slide(np.around(start).astype(int), np.around(end).astype(int), rails, gridshape, mask)
+        labelslib[angles[index]]["pxoffset"] = pxoffset
+
+    return labelslib
 
 
 def PrincipleComponents(df, mode, highlight):
@@ -89,6 +164,12 @@ def gridsplit(array, mode, val):
 
     val = list(map(int, val))
 
+    #if any of val is 0 set to the dimensiton of the array axis
+    if val[0] == 0:
+        val[0] = np.shape(array)[0]
+    if val[1] == 0:
+        val[1] = np.shape(array)[1]
+
     if mode == 'Manual':
         return internalsplit(array, val)
 
@@ -156,13 +237,11 @@ def autocorr(x, method):
         # Normalized data
         ndata = x - mean
 
-        acorr = np.correlate(ndata, ndata, 'full')[len(ndata) - 1:]
+        acorr = np.correlate(ndata, ndata, 'full')
         acorr = acorr / var / len(ndata)
 
-        resultmin = np.flip(acorr[1:])
-        result = np.concatenate((resultmin, acorr), axis=None)
 
-        return result
+        return acorr
 
     elif method == "Miso":
         x = (np.array(x) - np.nanmin(x)) / (np.nanmax(x) - np.nanmin(x))
@@ -182,14 +261,6 @@ def autocorr(x, method):
         ccov = np.correlate(a - np.mean(a), c - np.mean(c), mode='full')
         ccor = ccov / (len(a) * np.std(a) * np.std(c))
         return ccor
-
-def FFT(array,pixpermicron):
-    FFT = np.fft.fft(array)
-    x = np.array(range(len(FFT))) / pixpermicron
-
-    plt.plot(x, FFT)
-
-
 
 
 def midline(matrix, angle):
@@ -330,3 +401,51 @@ def normalizepx(arrayshape, midangle, deg, pxpermicron, pxamount):
     length = (hyp * np.cos(angle)) * 2
 
     return pxamount / length
+
+def peakvalley(autocorlist, length):
+    autocorlist = np.array(autocorlist)
+    length = np.array(length)
+    # Determine all the peaks and values of the autocorrelation to calculate the frequency and periodicity
+    cormin = (np.diff(np.sign(np.diff(autocorlist))) > 0).nonzero()[0] + 1  # local min
+    cormax = (np.diff(np.sign(np.diff(autocorlist))) < 0).nonzero()[0] + 1  # local max
+    if len(cormax) < 3 or len(cormin) < 2:
+        periodicity = np.nan
+        frequency = np.nan
+        return cormin, cormax, periodicity, frequency
+    else:
+        maxpoint = autocorlist[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
+        minpoint = autocorlist[cormin[int(len(cormin) / 2)]]
+
+        periodicity = maxpoint - minpoint
+        frequency = length[cormax[np.where(cormax == np.argmax(autocorlist))[0] + 1]]
+
+        return cormin, cormax, periodicity[0], frequency[0]
+
+def middlepeak(crosscorlist):
+
+    def findlow(array):
+        start = np.inf
+        for x in array:
+            if abs(x) <= abs(start):
+                start = x
+        return start
+
+    crosscorlist = np.array(crosscorlist)
+    cormax = (np.diff(np.sign(np.diff(crosscorlist))) < 0).nonzero()[0] + 1  # local max
+    leng = len(crosscorlist)
+    cormax = (cormax - (leng-1)/2)
+    closest = []
+    if len(cormax >= 1):
+        closest.append(findlow(cormax))
+        cormax = np.delete(cormax, np.where(cormax == closest[0]))
+    if len(cormax >= 1):
+        closest.append(findlow(cormax))
+    closest = [x + (leng-1)/2 for x in closest]
+    closest = list(map(int, closest))
+
+    if len(closest) == 1:
+        return closest[0]
+    elif crosscorlist[closest[0]] >= crosscorlist[closest[1]]:
+        return closest[0]
+    else:
+        return closest[1]
