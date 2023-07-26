@@ -71,7 +71,8 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
             tempdict[i]["frequency_c"] = frequency_c
             tempdict[i]["cormin_c"] = cormin_c
             tempdict[i]["cormax_c"] = cormax_c
-            crosscorlag = df_correlation["length"][middlepeak(df_correlation["crosscorr"])] # Calculate crosscorrelation lag
+            middlepeakindex = middlepeak(df_correlation["crosscorr"])
+            crosscorlag = df_correlation["length"][middlepeakindex] if not np.isnan(middlepeakindex) else np.nan  # Calculate crosscorrelation lag
             tempdict[i]["crosscorlag"] = crosscorlag
 
             ### ADD RAW INTENSITY AND CORRELATION DATA TO TEMP DICT ###

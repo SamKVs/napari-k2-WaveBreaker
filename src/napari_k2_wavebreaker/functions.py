@@ -200,10 +200,6 @@ def gridsplit(array, mode, val):
         for x in range(coldev + 1):
             colsplit.append(round((colrest / 2) + (x * val[1])))
 
-        print(arrayshape)
-        print(rowsplit)
-        print(colsplit)
-
         for row in range(len(rowsplit) - 1):
             for col in range(len(colsplit) - 1):
                 grids.append(array[rowsplit[row]:rowsplit[row + 1], colsplit[col]:colsplit[col + 1]])
@@ -238,6 +234,12 @@ def autocorr(x, method):
         ndata = x - mean
 
         acorr = np.correlate(ndata, ndata, 'full')
+
+        if var == 0:
+            acorr = np.empty(len(acorr))[:]
+            acorr[:] = np.nan
+            return acorr
+
         acorr = acorr / var / len(ndata)
 
 
@@ -259,6 +261,12 @@ def autocorr(x, method):
         a = x[0]
         c = x[1]
         ccov = np.correlate(a - np.mean(a), c - np.mean(c), mode='full')
+
+        if np.std(a) == 0 or np.std(c) == 0:
+            ccor = np.empty(len(ccov))
+            ccor[:] = np.nan
+            return ccor
+
         ccor = ccov / (len(a) * np.std(a) * np.std(c))
         return ccor
 
@@ -403,6 +411,8 @@ def normalizepx(arrayshape, midangle, deg, pxpermicron, pxamount):
     return pxamount / length
 
 def peakvalley(autocorlist, length):
+    if autocorlist.isnull().values.all():
+        return np.nan, np.nan, np.nan, np.nan
     autocorlist = np.array(autocorlist)
     length = np.array(length)
     # Determine all the peaks and values of the autocorrelation to calculate the frequency and periodicity
@@ -422,6 +432,9 @@ def peakvalley(autocorlist, length):
         return cormin, cormax, periodicity[0], frequency[0]
 
 def middlepeak(crosscorlist):
+
+    if crosscorlist.isnull().values.all():
+        return np.nan
 
     def findlow(array):
         start = np.inf
@@ -445,6 +458,8 @@ def middlepeak(crosscorlist):
 
     if len(closest) == 1:
         return closest[0]
+    elif len(closest) == 0:
+        return np.nan
     elif crosscorlist[closest[0]] >= crosscorlist[closest[1]]:
         return closest[0]
     else:
