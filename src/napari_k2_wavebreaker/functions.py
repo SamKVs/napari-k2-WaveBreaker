@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 import copy
+
+import matplotlib.pyplot as plt
 import numpy as np
 from math import isnan
 import math
@@ -10,6 +12,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from skimage.draw import line
 from matplotlib.pyplot import xcorr
+from skimage.feature import peak_local_max
 
 if TYPE_CHECKING:
     import napari
@@ -464,3 +467,17 @@ def middlepeak(crosscorlist):
         return closest[0]
     else:
         return closest[1]
+
+def localmaxcounter(array, pxpermicron):
+    ## Get biological area from mask
+    maskcount = np.count_nonzero(~np.isnan(array))
+    maskarea = maskcount * ((1/ pxpermicron) ** 2)
+
+    ## Get local maxima from raw grid data
+    array = np.nan_to_num(array, nan=0)
+    peakcount = len(peak_local_max(array, min_distance=1))
+
+    ## Return points per area in micron
+    return peakcount / maskarea
+
+

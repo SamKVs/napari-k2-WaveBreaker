@@ -21,6 +21,8 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
     df_grid = pd.DataFrame(columns=["deg", "periodicity_a", "frequency_a", "periodicity_c", "frequency_c", "crosscorlag", "gridindex", "pxpercentage"]) # Dataframe to store the data of every degree
     gridshape = np.shape(grid_a)
     gridpercentage = (np.size(grid_a) - np.count_nonzero(np.isnan(grid_a))) / np.size(grid_a)
+    gridpointcount_a = localmaxcounter(grid_a, pxpermicron)
+    gridpointcount_c = localmaxcounter(grid_c, pxpermicron)
 
 
     ### GRADIENT LABELS GENERATION ###
@@ -87,7 +89,9 @@ def cycledegreesCross(input, pxpermicron, filename, restrictdeg, outputimg, outp
                                       "frequency_c": [frequency_c],
                                       "crosscorlag": [crosscorlag],
                                       "gridindex": [filename + " / " + str(gridnumber)],
-                                      "pxpercentage": [gridpercentage]})
+                                      "pxpercentage": [gridpercentage],
+                                      "pointspermicron2_a": [gridpointcount_a],
+                                      "pointspermicron2_c": [gridpointcount_c]})
             df_grid = pd.concat([df_grid, df_angle])
 
 

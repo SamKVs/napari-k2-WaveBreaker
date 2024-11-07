@@ -20,6 +20,8 @@ def cycledegreesAuto(input, pxpermicron, filename, restrictdeg, outputimg, outpu
     df_grid = pd.DataFrame(columns=["deg", "periodicity_a", "frequency_a", "gridindex", "pxpercentage"]) # Dataframe to store the data of every degree
     gridshape = np.shape(grid)
     gridpercentage = (np.size(grid) - np.count_nonzero(np.isnan(grid))) / np.size(grid)
+    gridpointcount = localmaxcounter(grid, pxpermicron)
+    print(gridpointcount)
 
 
     ### GRADIENT LABELS GENERATION ###
@@ -69,7 +71,8 @@ def cycledegreesAuto(input, pxpermicron, filename, restrictdeg, outputimg, outpu
                                       "periodicity_a": [periodicity_a],
                                       "frequency_a": [frequency_a],
                                       "gridindex": [filename + " / " + str(gridnumber)],
-                                      "pxpercentage": [gridpercentage]})
+                                      "pxpercentage": [gridpercentage],
+                                      "pointspermicron2": [gridpointcount]})
             df_grid = pd.concat([df_grid, df_angle])
 
 
