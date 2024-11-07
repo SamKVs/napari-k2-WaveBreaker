@@ -242,6 +242,7 @@ class AutocorrelationTool(QWidget):
                                 name=str(self.viewer.layers[self.comboBox_layer.currentText()]) + "_mask",
                                 color= {1: "cyan"},
                                 opacity= 0.30)
+        self.viewer.layers[str(self.viewer.layers[self.comboBox_layer.currentText()]) + "_mask"].brush_size = 100
 
     def createshapelayer(self):
         self.viewer.add_shapes(shape_type="rectangle", edge_width=5, edge_color='#05d9b9', face_color='#05e69f',
