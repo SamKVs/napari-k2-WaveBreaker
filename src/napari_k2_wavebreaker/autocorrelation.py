@@ -38,10 +38,15 @@ def cycledegreesAuto(input, pxpermicron, filename, restrictdeg, outputimg, outpu
                                            grid,
                                            properties=['label', 'mean_intensity'])
 
+
+
+        if len(data_a["label"]) in [0, 1]:
+            continue
         ### CHECK FOR CONTINUEITY ###
         if checkConsecutive(data_a["label"]) == False:
-            pass
+            continue
         else:
+            print("lets go")
             ### CALCULATE CORRELATION ###
             tempdict[i] = {}  # Create a dictionary for every degree
 

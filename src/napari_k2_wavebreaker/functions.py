@@ -13,9 +13,14 @@ from sklearn.preprocessing import StandardScaler
 from skimage.draw import line
 from matplotlib.pyplot import xcorr
 from skimage.feature import peak_local_max
+from toolz import excepts
 
 if TYPE_CHECKING:
     import napari
+
+class GridSplitError(Exception):
+    """Raised when the grid split is not possible"""
+    pass
 
 def abspath(root, relpath):
     from pathlib import Path
@@ -27,7 +32,7 @@ def abspath(root, relpath):
     return str(path.absolute())
 
 def checkConsecutive(l):
-    return sorted(l) == list(range(min(l), max(l)+1))
+    return sorted(l) == list(range(min(l), max(l) + 1))
 
 def deg2vec(angle):
     return np.transpose(np.array([np.cos(np.radians(angle)), np.sin(np.radians(angle))]))
@@ -149,12 +154,8 @@ def PrincipleComponents(df, mode, highlight):
     fig.show()
 
 
-def gridsplit(array, mode, val):
+def gridsplit(array, mode, val, restrict):
     def internalsplit(array, val):
-        if val[0] == 0:
-            val[0] = 1
-        if val[1] == 0:
-            val[1] = 1
         array = np.transpose(array)
         slices = np.array_split(array, val[1])
         grids = []
@@ -167,16 +168,30 @@ def gridsplit(array, mode, val):
 
     val = list(map(int, val))
 
+    print(np.shape(array))
+    # If restrict is True, crop the array to the smallest possible size where values are not np.nan
+    if restrict:
+        mask = np.isnan(array)
+        rows = np.flatnonzero((~mask).sum(axis=1))
+        cols = np.flatnonzero((~mask).sum(axis=0))
+        array = array[rows.min():rows.max()+1, cols.min():cols.max()+1]
+
+    print(np.shape(array))
+
     #if any of val is 0 set to the dimensiton of the array axis
     if val[0] == 0:
         val[0] = np.shape(array)[0]
     if val[1] == 0:
         val[1] = np.shape(array)[1]
 
-    if mode == 'Manual':
+    if mode == 'Auto':
         return internalsplit(array, val)
 
-    if mode == 'Auto':
+    if mode == 'Manual':
+        if val[0] > np.shape(array)[0] or val[1] > np.shape(array)[1]:
+            raise GridSplitError(
+                "Grid split is not possible because one of the given grid dimensions is larger then the respective array dimension")
+
         arrayshape = np.shape(array)
         rowsplit = int(arrayshape[0] / val[0])
         colsplit = int(arrayshape[1] / val[1])
@@ -186,6 +201,8 @@ def gridsplit(array, mode, val):
         return [array]
 
     if mode == "Fixed":
+        if val[0] > np.shape(array)[0] or val[1] > np.shape(array)[1]:
+            raise GridSplitError("Grid split is not possible because one of the given grid dimensions is larger then the respective array dimension")
         arrayshape = np.shape(array)
         rowsplit = []
         colsplit = []
