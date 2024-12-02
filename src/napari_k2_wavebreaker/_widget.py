@@ -21,6 +21,7 @@ from skimage.color import rgb2gray
 
 from napari.qt.threading import WorkerBase, WorkerBaseSignals
 from napari.utils.notifications import show_info
+from napari.utils.colormaps import DirectLabelColormap
 from napari import Viewer, run
 
 if TYPE_CHECKING:
@@ -51,6 +52,22 @@ class ArrayShapeIncompatible(Exception):
 
 class NoOutputPath(Exception):
     """Raised when the output path is not defined"""
+    pass
+
+class NoGridsToAnalyze(Exception):
+    """Raised when there are no grids to analyze"""
+    pass
+
+class AnalysisAttemptOnEmptyImage(Exception):
+    """Raised when the image is empty"""
+    pass
+
+class resolutionError(Exception):
+    """Raised when the resolution is zero"""
+    pass
+
+class GridSplitError(Exception):
+    """Raised when the grid split is not possible"""
     pass
 
 
@@ -147,10 +164,12 @@ class AutocorrelationTool(QWidget):
         if self.comboBox_gridsplit.currentText() == "None":
             self.spinBox_gridLeft.setEnabled(False)
             self.spinBox_gridRight.setEnabled(False)
+            self.checkBox_restrictGrid.setEnabled(False)
 
         else:
             self.spinBox_gridLeft.setEnabled(True)
             self.spinBox_gridRight.setEnabled(True)
+            self.checkBox_restrictGrid.setEnabled(True)
 
     # Updates comboboxes
     def updatelayer(self):
@@ -172,7 +191,7 @@ class AutocorrelationTool(QWidget):
 
     def threshold(self, input):
         blurredz = gaussian_filter(input, sigma=3)
-        pixelsize = self.spinBox_pixel.value() / 2
+        pixelsize = self.doubleSpinBox_pixel.value() / 2
 
         ### MANUAL THRESHOLDING ###
         thresh = (self.threshSlider.value() / 1000) * np.max(blurredz)
@@ -240,7 +259,7 @@ class AutocorrelationTool(QWidget):
         mask = self.threshold(self.inputarray)
         self.viewer.add_labels(mask.astype(int),
                                 name=str(self.viewer.layers[self.comboBox_layer.currentText()]) + "_mask",
-                                color= {1: "cyan"},
+                                colormap=DirectLabelColormap(color_dict= {None: [0, 0, 0, 0], 1: [0, 1, 1, 1]}),
                                 opacity= 0.30)
         self.viewer.layers[str(self.viewer.layers[self.comboBox_layer.currentText()]) + "_mask"].brush_size = 100
 
@@ -285,8 +304,9 @@ class AutocorrelationTool(QWidget):
                                          gridsplitmode=self.comboBox_gridsplit.currentText(),
                                          gridsplitleft=self.spinBox_gridLeft.value(),
                                          gridsplitright=self.spinBox_gridRight.value(),
+                                         gridsplitrestrict=self.checkBox_restrictGrid.isChecked(),
                                          autocormode=self.comboBox_AutocorMethod.currentText(),
-                                         pixelsize=self.spinBox_pixel.value(),
+                                         pixelsize=self.doubleSpinBox_pixel.value(),
                                          outimg=self.checkBox_outImg.isChecked(),
                                          outcsv=self.checkBox_outCSV.isChecked(),
                                          path=self.outputPath,
@@ -315,6 +335,7 @@ class MyWorker(WorkerBase):
         self.gridsplitright = None
         self.gridsplitleft = None
         self.gridsplitmode = None
+        self.gridsplitrestrict = None
         self.analysismode = None
         self.maskedarray = None
         self.restrictdeg = None
@@ -327,6 +348,7 @@ class MyWorker(WorkerBase):
                          gridsplitmode,
                          gridsplitleft,
                          gridsplitright,
+                         gridsplitrestrict,
                          autocormode,
                          pixelsize,
                          outimg,
@@ -347,20 +369,30 @@ class MyWorker(WorkerBase):
         self.outcsv = outcsv
         self.path = path
         self.restrictdeg = restrictdeg
+        self.gridsplitrestrict = gridsplitrestrict
 
     def run(self):
         print("ok")
         print(self.outcsv)
+        if self.pixelsize == 0:
+            raise resolutionError("Resolution cannot be zero")
+
         gridsplitmode = self.gridsplitmode
         # gridsplitmode = "Auto"
 
         gridsplitval = [self.gridsplitleft, self.gridsplitright]
+        gridsplitrestrict = self.gridsplitrestrict
         # gridsplitval = [200,200]
 
         cleangrids = []
 
+        # if self.maskedarray is all np.nan then raise exception
+        if np.isnan(self.maskedarray).all():
+            raise AnalysisAttemptOnEmptyImage("Analysis attempted on empty image. Make sure the mask layer is not empty")
+
+
         if self.maskedarray_c is None:
-            grids = gridsplit(self.maskedarray, gridsplitmode, gridsplitval)
+            grids = gridsplit(self.maskedarray, gridsplitmode, gridsplitval, gridsplitrestrict)
             for index, grid in enumerate(grids):
                 if not np.isnan(grid).all():
                     cleangrids.append(grid)
@@ -397,8 +429,8 @@ class MyWorker(WorkerBase):
 
 
         else:
-            grids_a = gridsplit(self.maskedarray, gridsplitmode, gridsplitval)
-            grids_c = gridsplit(self.maskedarray_c, gridsplitmode, gridsplitval)
+            grids_a = gridsplit(self.maskedarray, gridsplitmode, gridsplitval, gridsplitrestrict)
+            grids_c = gridsplit(self.maskedarray_c, gridsplitmode, gridsplitval, gridsplitrestrict)
             for index, grid in enumerate(grids_a):
                 if not np.isnan(grid).all():
                     cleangrids.append([grids_a[index],grids_c[index]])

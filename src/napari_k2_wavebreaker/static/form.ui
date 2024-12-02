@@ -726,6 +726,17 @@ border-radius: 10px;</string>
           </layout>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <item>
+            <widget class="QCheckBox" name="checkBox_restrictGrid">
+             <property name="text">
+              <string>Restrict split to masked area</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <widget class="Line" name="line_17">
            <property name="styleSheet">
             <string notr="true">border: 2px solid #027371</string>
@@ -775,9 +786,9 @@ border-radius: 10px;</string>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox_pixel">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_pixel">
              <property name="maximum">
-              <number>9999999</number>
+              <double>999999.989999999990687</double>
              </property>
             </widget>
            </item>

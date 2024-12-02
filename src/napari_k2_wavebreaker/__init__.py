@@ -1,4 +1,4 @@
-__version__ = "0.2.2"
+__version__ = "0.2.4"
 from ._widget import AutocorrelationTool
 from . import autocorrelation
 from . import ClickLabel
