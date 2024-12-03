@@ -17,7 +17,11 @@ This Napari plugin was designed for the detection and quantification of periodic
 As this plugin has not been uploaded to napari-hub as of this moment it **cannot be installed on a pre-compiled, bundled 
 version of Napari**. Therefore Napari will need to be installed as a python package 
 (<a href="https://napari.org/stable/tutorials/fundamentals/installation.html">more info about Napari installation</a>). 
-Further information about the installation and licensing of the plugin can be found below. 
+Further information about the installation and licensing of the plugin can be found below. A detailed manual on the usage of the plugin can be found below as well. 
+
+**If you have any questions or need help with the installation, please do hesitate to use the issues tab.**
+
+**In case you need a tutorial on how to use the plugin, please use the "tutorial request" label in the issues tab to reach out to me:**
 
 
 <h3>Guide</h3>
@@ -69,6 +73,10 @@ Additionally, it can be used to detect and quantify the periodicity shift betwee
 
 <a href="static/TEMPLATE CROSSCORRELATION (x15).xlsx">
     <img src="static/CC EX BUT.svg" width="50%">  
+</a>
+
+<a href="static/Post-processing.py">
+    <img src="static/EX%20PY.svg" width="50%">
 </a>
 
 
