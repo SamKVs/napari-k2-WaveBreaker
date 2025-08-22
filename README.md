@@ -13,6 +13,16 @@
 <h2>About this plugin</h2>
 
 
+---
+
+📢 **Update (2025):** This tool is now published in *Frontiers in Neuroinformatics*!  
+➡️ [Read the article here](https://www.frontiersin.org/journals/neuroinformatics/articles/10.3389/fninf.2025.1628538/full)
+
+---
+
+## About this plugin
+
+
 This Napari plugin was designed for the detection and quantification of periodic biological structures.
 As this plugin has not been uploaded to napari-hub as of this moment it **cannot be installed on a pre-compiled, bundled 
 version of Napari**. Therefore Napari will need to be installed as a python package 
