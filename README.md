@@ -10,8 +10,6 @@
 <div>
     <img src="static/Logo.png">
 </div>
-<h2>About this plugin</h2>
-
 
 ---
 
